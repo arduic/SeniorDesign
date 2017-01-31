@@ -38,8 +38,8 @@ entity fft_engine is
     -- Input memory interface
     din       : in  icpx_number;        -- data input
     valid     : out std_logic;
-    saddr     : out unsigned(LOG2_FFT_LEN-2 downto 0);
-    saddr_rev : out unsigned(LOG2_FFT_LEN-2 downto 0);
+    saddr     : out unsigned(LOG2_FFT_LEN-2 downto 0);  -- counter for number of samples in fft output
+    saddr_rev : out unsigned(LOG2_FFT_LEN-2 downto 0);  -- reverse bit order pf saddr
     sout0     : out icpx_number;        -- spectrum output
     sout1     : out icpx_number         -- spectrum output
     );

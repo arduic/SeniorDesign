@@ -29,9 +29,6 @@ use ieee.math_complex.all;
 library work;
 use work.fft_len.all;
 package icpx is
-  
-  -- Definition below is generated in the fft_len package
-  --constant ICPX_WIDTH : integer := 16;
 
   -- constant defining the size of std_logic_vector
   -- needed to store the number
@@ -99,6 +96,21 @@ package body icpx is
     vres.Im := to_signed(integer(din.Im*(2.0**(ICPX_WIDTH-2))), ICPX_WIDTH);
     return vres;
   end cplx2icpx;
+
+
+  function parts2icpx (
+    constant re: integer;
+    constant im: integer)  
+    return icpx_number is
+
+    variable vres : ICPX_NUMBER := icpx_zero;
+
+  begin  -- cplx2icpx
+    vres.Re := to_signed(re, ICPX_WIDTH);
+    vres.Im := to_signed(im, ICPX_WIDTH);
+    return vres;
+  end parts2icpx;
+
 
   function icpx_zero
     return icpx_number is
