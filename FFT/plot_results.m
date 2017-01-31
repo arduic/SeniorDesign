@@ -1,17 +1,20 @@
 %% Plot results
-clear all
-clc
-M = dlmread('data_out.txt',' ');
+close all;
+
+M = dlmread('data_out.txt');
+mag = zeros(len_of_data, 1);
 for i=1:size(M,1)
     mag(i)=sqrt(M(i,1)^2+M(i,2)^2);
 end
 
-sampleRate=10*10^-9;
-sampleFreq=1/sampleRate;
-numSamples=1024;
+L = length(M);
+f = Fs/L*(0:(len_of_data-1));
 
-xAxVal = sampleFreq/numSamples;
+% If data is noisy, this will find noisy peaks
+[pks, locs] = findpeaks(mag);
+% disp('Found Peaks at');
+% disp(f(locs));
 
-xAxRange=0:xAxVal:xAxVal*1023;
-
-plot(xAxRange,mag);
+figure;
+plot(f, mag, f(locs), pks, 'o');
+title('Single Sided FFT Spectrum');
