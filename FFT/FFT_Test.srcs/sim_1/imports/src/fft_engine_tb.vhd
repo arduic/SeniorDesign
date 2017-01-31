@@ -44,10 +44,10 @@ architecture beh1 of fft_engine_tb is
 
   type T_OUT_DATA is array (0 to FFT_LEN-1) of icpx_number;
 
-  signal dptr                 : integer range 0 to 15;
   signal din, sout0, sout1    : icpx_number;
   signal saddr, saddr_rev     : unsigned(LOG2_FFT_LEN-2 downto 0);
   signal end_of_data, end_sim : boolean := false;
+  signal icpx_width: integer := icpx_width;
 
   component fft_engine is
     generic (
@@ -90,9 +90,9 @@ begin  -- beh1
 
   -- waveform generation
   WaveGen_Proc : process
-    file data_in         : text open read_mode is "C:\Users\pcc37\FFT_Test\FFT_Test.srcs\sources_1\imports\src\data_in.txt";
+    file data_in         : text open read_mode is "C:\Users\lc599.DREXEL\fft_working\fft_working.srcs\sources_1\imports\src\data_in.txt";
     variable input_line  : line;
-    file data_out        : text open write_mode is "C:\Users\pcc37\FFT_Test\FFT_Test.srcs\sources_1\imports\src\data_out.txt";
+    file data_out        : text open write_mode is "C:\Users\lc599.DREXEL\fft_working\fft_working.srcs\sources_1\imports\src\data_out.txt";
     variable output_line : line;
     variable tre, tim    : real;
     constant sep         : string := " ";
@@ -104,8 +104,10 @@ begin  -- beh1
     wait until clk = '0';
     wait until clk = '1';
     rst_n <= '1';
-    dptr  <= 0;
-    l1 : while not end_sim loop
+    
+    l1 : 
+    while not end_sim loop
+      --  Get real and imaginary parts
       if not endfile(data_in) then
         readline(data_in, input_line);
         read(input_line, tre);
@@ -113,18 +115,18 @@ begin  -- beh1
       else
         end_of_data <= true;
       end if;
+      
+      -- create complex number
       din <= cplx2icpx(complex'(tre, tim));
-      if dptr < 15 then
-        dptr <= dptr + 1;
-      else
-        dptr <= 0;
-      end if;
+      --din <= parts2icpx(tre, tim);
+      
       -- Copy the data produced by the core to the output buffer
       vout(to_integer(saddr_rev))       := sout0;
       vout(to_integer('1' & saddr_rev)) := sout1;
+      
       -- If the full set of data is calculated, write the output buffer
       if saddr = FFT_LEN/2-1 then
-        write(output_line, string'("FFT RESULT BEGIN"));
+        --write(output_line, string'("FFT RESULT BEGIN"));
         writeline(data_out, output_line);
         for i in 0 to FFT_LEN-1 loop
           write(output_line, integer'image(to_integer(vout(i).re)));
@@ -132,7 +134,7 @@ begin  -- beh1
           write(output_line, integer'image(to_integer(vout(i).im)));
           writeline(data_out, output_line);
         end loop;  -- i
-        write(output_line, string'("FFT RESULT END"));
+        --write(output_line, string'("FFT RESULT END"));
         writeline(data_out, output_line);
         exit l1 when end_of_data;
       end if;
