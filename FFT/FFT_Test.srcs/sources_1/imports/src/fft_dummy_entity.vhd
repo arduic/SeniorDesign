@@ -30,6 +30,10 @@ use work.icpx.all;
 use work.fft_support_pkg.all;
 
 entity fft_dummy_entity is
+generic (
+    dest_mag: real := 2.0;
+    base_mag: real := 255.0
+);
 Port (
     rst_n: in std_logic;
     clk: in std_logic;
@@ -44,7 +48,7 @@ end fft_dummy_entity;
 
 architecture Behavioral of fft_dummy_entity is
 
-    signal icpx_in, icpx_out: icpx_number := icpx_zero;
+    signal icpx_in, icpx_out, icpx_in2: icpx_number := icpx_zero;
 
 component fft_engine
   generic (
@@ -64,6 +68,22 @@ component fft_engine
 
 end component;
 
+
+  function ints_to_icpx(constant re_in: unsigned(icpx_width-1 downto 0);
+                        constant im_in: unsigned(icpx_width-1 downto 0))
+                        return icpx_number is
+    variable re_real, im_real: real;
+    variable vres: icpx_number;
+  begin
+    re_real := real(to_integer(re_in));
+    im_real := real(to_integer(im_in));
+    vres := cplx2icpx(complex'(
+        (re_real * 2.0 * dest_mag / base_mag) - dest_mag,
+        (im_real * 2.0 * dest_mag / base_mag) - dest_mag
+    ));
+    return vres;
+  end function ints_to_icpx;
+
 begin
 
     icpx_in.Re <= signed(re_in);
@@ -71,17 +91,20 @@ begin
     
     icpx_re_vec_out <= std_logic_vector(icpx_out.Re);
     icpx_im_vec_out <= std_logic_vector(icpx_out.Im);
+    
+    --icpx_in2 <= ints_to_icpx(unsigned(re_in), unsigned(im_in));
+    --icpx_in2 <= stlv2icpx(re_in & im_in);
 
     U1: fft_engine 
         port map(
-            rst_n, 
-            clk, 
-            icpx_in, 
-            valid, 
-            open, 
-            open, 
-            icpx_out, 
-            open
+            rst_n => rst_n, 
+            clk => clk, 
+            din => icpx_in2, 
+            valid => valid, 
+            saddr => open, 
+            saddr_rev => open, 
+            sout0 => icpx_out, 
+            sout1 => open
         );
 
 end Behavioral;
