@@ -42,8 +42,8 @@ entity count_control_hdM is
         --Counter stuff
     counter_clk : out std_logic;
     counter_pulse : in std_logic;
-    counter_reset : out std_logic;
-    counter_halt : out std_logic
+    counter_reset : out std_logic
+    --counter_halt : out std_logic
    );
 end count_control_hdM;
 
@@ -57,9 +57,9 @@ architecture Behavioral of count_control_hdM is
         Port ( 
             in_clk : in std_logic;
             out_count_clk : out std_logic := '0';  --(CLK)
-            send_pulse : in std_logic;
-            reset : out std_logic := '0';          --(MR)
-            halt_count : out std_logic      --(CE)
+            send_pulse : in std_logic;      --Currently there is an over ride in the XDC to let this work. It's not really a problem because in the final design this will not be a hardware pin
+            reset : out std_logic := '0'          --(MR)
+            --halt_count : out std_logic      --(CE)
         );
     end component Counter_Control;
 
@@ -75,8 +75,8 @@ begin
         in_clk               => clk,
         out_count_clk               => counter_clk,
         send_pulse      => counter_pulse,
-        reset  => counter_reset,
-        halt_count  => counter_halt
+        reset  => counter_reset
+        --halt_count  => counter_halt
     );
 
     
