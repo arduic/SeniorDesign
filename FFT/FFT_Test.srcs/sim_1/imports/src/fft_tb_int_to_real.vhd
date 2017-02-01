@@ -68,6 +68,7 @@ architecture Behavioral of fft_tb_int_to_real is
   signal re, im: unsigned(15 downto 0);
   signal re_real, im_real, re_real2, im_real2: real := 0.0;
   signal valid: std_logic := '0';  -- Indicates valid output
+  signal combined: std_logic_vector(2*icpx_width-1 downto 0) := (others => '0');
 
 begin
 
@@ -113,18 +114,17 @@ begin
     while not end_sim loop
       if will_receive_valid = '1' then
         valid <= '1';
+        will_receive_valid := '0';
       end if;
       
       -- First process previously received data
       if valid = '1' then
-          --din <= cplx2icpx(complex'(re_real2, im_real2));
           -- Copy the data produced by the core to the output buffer
           vout(to_integer(saddr_rev))       := sout0;
           vout(to_integer('1' & saddr_rev)) := sout1;
           
           -- If the full set of data is calculated, write the output buffer
           if saddr = FFT_LEN/2-1 then
-            --write(output_line, string'("FFT RESULT BEGIN"));
             writeline(data_out, output_line);
             for i in 0 to FFT_LEN-1 loop
               write(output_line, integer'image(to_integer(vout(i).re)));
@@ -132,7 +132,6 @@ begin
               write(output_line, integer'image(to_integer(vout(i).im)));
               writeline(data_out, output_line);
             end loop;  -- i
-            --write(output_line, string'("FFT RESULT END"));
             writeline(data_out, output_line);
             exit l1 when end_of_data;
           end if;
@@ -148,8 +147,6 @@ begin
       end if;
       
       -- create complex number
---      din <= cplx2icpx(complex'(tre, tim));
---      din <= parts2icpx(tre, tim);
       re <= to_unsigned(tre, re'length);
       im <= to_unsigned(tim, im'length);
       
@@ -157,31 +154,14 @@ begin
       im_real <= real(tim);
       
       -- Latency of 1 clk cycle
-      re_real2 <= (re_real * 2.0 * dest_mag / base_mag) - dest_mag;
-      im_real2 <= (im_real * 2.0 * dest_mag / base_mag) - dest_mag;
+      --re_real2 <= (re_real * 2.0 * dest_mag / base_mag) - dest_mag;
+      --im_real2 <= (im_real * 2.0 * dest_mag / base_mag) - dest_mag;
+      --din <= cplx2icpx(complex'(re_real2, im_real2));
+      combined(2*icpx_width-1 downto icpx_width) <= std_logic_vector(to_unsigned(tre, icpx_width));
+      combined(icpx_width-1 downto 0) <= std_logic_vector(to_unsigned(tim, icpx_width));
+      din <= stlv2icpx(combined);
       will_receive_valid := '1';
-      din <= cplx2icpx(complex'(re_real2, im_real2));
       
-      -- Copy the data produced by the core to the output buffer
---      vout(to_integer(saddr_rev))       := sout0;
---      vout(to_integer('1' & saddr_rev)) := sout1;
-      
-      
-      
-      -- If the full set of data is calculated, write the output buffer
---      if saddr = FFT_LEN/2-1 then
---        --write(output_line, string'("FFT RESULT BEGIN"));
---        writeline(data_out, output_line);
---        for i in 0 to FFT_LEN-1 loop
---          write(output_line, integer'image(to_integer(vout(i).re)));
---          write(output_line, sep);
---          write(output_line, integer'image(to_integer(vout(i).im)));
---          writeline(data_out, output_line);
---        end loop;  -- i
---        --write(output_line, string'("FFT RESULT END"));
---        writeline(data_out, output_line);
---        exit l1 when end_of_data;
---      end if;
       wait until clk = '0';
       wait until clk = '1';
     end loop l1;
