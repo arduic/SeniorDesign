@@ -43,6 +43,7 @@ architecture Behavioral of fft_tb_int_to_real is
   signal saddr, saddr_rev     : unsigned(LOG2_FFT_LEN-2 downto 0);
   signal end_of_data, end_sim : boolean := false;
   signal icpx_width: integer := icpx_width;
+  signal valid: std_logic := '0';
 
   component fft_engine is
     generic (
@@ -65,9 +66,6 @@ architecture Behavioral of fft_tb_int_to_real is
   -- clock
   signal Clk : std_logic := '1';
   
-  signal re, im: unsigned(15 downto 0);
-  signal re_real, im_real, re_real2, im_real2: real := 0.0;
-  signal valid: std_logic := '0';  -- Indicates valid output
   signal combined: std_logic_vector(2*icpx_width-1 downto 0) := (others => '0');
 
 begin
@@ -80,6 +78,7 @@ begin
       rst_n     => rst_n,
       clk       => clk,
       din       => din,
+      valid => valid,
       saddr     => saddr,
       saddr_rev => saddr_rev,
       sout0     => sout0,
@@ -90,17 +89,13 @@ begin
 
  --waveform generation
   WaveGen_Proc : process
-    file data_in         : text open read_mode is "C:\Users\lc599.DREXEL\fft_working\fft_working.srcs\sources_1\imports\src\data_in2.txt";
+    file data_in         : text open read_mode is input_file;
     variable input_line  : line;
-    file data_out        : text open write_mode is "C:\Users\lc599.DREXEL\fft_working\fft_working.srcs\sources_1\imports\src\data_out.txt";
+    file data_out        : text open write_mode is output_file;
     variable output_line : line;
     variable tre, tim    : integer;
     constant sep         : string := " ";
     variable vout        : T_OUT_DATA;
-    
-    constant base_mag: real := 255.0;
-    constant dest_mag: real := 1.5;
-    variable will_receive_valid: std_logic := '0';  -- Valid on next clock cycle
     
   begin
     -- insert signal assignments here
@@ -112,31 +107,6 @@ begin
     
     l1 : 
     while not end_sim loop
-      if will_receive_valid = '1' then
-        valid <= '1';
-        will_receive_valid := '0';
-      end if;
-      
-      -- First process previously received data
-      if valid = '1' then
-          -- Copy the data produced by the core to the output buffer
-          vout(to_integer(saddr_rev))       := sout0;
-          vout(to_integer('1' & saddr_rev)) := sout1;
-          
-          -- If the full set of data is calculated, write the output buffer
-          if saddr = FFT_LEN/2-1 then
-            writeline(data_out, output_line);
-            for i in 0 to FFT_LEN-1 loop
-              write(output_line, integer'image(to_integer(vout(i).re)));
-              write(output_line, sep);
-              write(output_line, integer'image(to_integer(vout(i).im)));
-              writeline(data_out, output_line);
-            end loop;  -- i
-            writeline(data_out, output_line);
-            exit l1 when end_of_data;
-          end if;
-      end if;
-    
       --  Get real and imaginary parts
       if not endfile(data_in) then
         readline(data_in, input_line);
@@ -146,21 +116,27 @@ begin
         end_of_data <= true;
       end if;
       
-      -- create complex number
-      re <= to_unsigned(tre, re'length);
-      im <= to_unsigned(tim, im'length);
-      
-      re_real <= real(tre);
-      im_real <= real(tim);
-      
       -- Latency of 1 clk cycle
-      --re_real2 <= (re_real * 2.0 * dest_mag / base_mag) - dest_mag;
-      --im_real2 <= (im_real * 2.0 * dest_mag / base_mag) - dest_mag;
-      --din <= cplx2icpx(complex'(re_real2, im_real2));
       combined(2*icpx_width-1 downto icpx_width) <= std_logic_vector(to_unsigned(tre, icpx_width));
       combined(icpx_width-1 downto 0) <= std_logic_vector(to_unsigned(tim, icpx_width));
       din <= stlv2icpx(combined);
-      will_receive_valid := '1';
+      
+          -- Copy the data produced by the core to the output buffer
+      vout(to_integer(saddr_rev))       := sout0;
+      vout(to_integer('1' & saddr_rev)) := sout1;
+      
+      -- If the full set of data is calculated, write the output buffer
+      if saddr = FFT_LEN/2-1 then
+        writeline(data_out, output_line);
+        for i in 0 to FFT_LEN-1 loop
+          write(output_line, integer'image(to_integer(vout(i).re)));
+          write(output_line, sep);
+          write(output_line, integer'image(to_integer(vout(i).im)));
+          writeline(data_out, output_line);
+        end loop;  -- i
+        writeline(data_out, output_line);
+        exit l1 when end_of_data;
+      end if;
       
       wait until clk = '0';
       wait until clk = '1';

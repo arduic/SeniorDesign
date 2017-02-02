@@ -46,8 +46,9 @@ set_property PACKAGE_PIN W13 [get_ports {im_in[3]}]
  
 
 ## LEDs
-set_property PACKAGE_PIN U16 [get_ports {valid}]					
-	set_property IOSTANDARD LVCMOS33 [get_ports {valid}]
+# Never wire anything to an LED if it constantly changes in value
+#set_property PACKAGE_PIN U16 [get_ports {valid}]					
+#	set_property IOSTANDARD LVCMOS33 [get_ports {valid}]
 #set_property PACKAGE_PIN E19 [get_ports {led[1]}]					
 	#set_property IOSTANDARD LVCMOS33 [get_ports {led[1]}]
 #set_property PACKAGE_PIN U19 [get_ports {led[2]}]					
@@ -153,8 +154,8 @@ set_property PACKAGE_PIN G3 [get_ports {icpx_im_vec_out[3]}]
 
 ##Pmod Header JB
 ##Sch name = JB1
-#set_property PACKAGE_PIN A14 [get_ports {JB[0]}]					
-	#set_property IOSTANDARD LVCMOS33 [get_ports {JB[0]}]
+set_property PACKAGE_PIN A14 [get_ports {valid}]					
+	set_property IOSTANDARD LVCMOS33 [get_ports {valid}]
 ##Sch name = JB2
 #set_property PACKAGE_PIN A16 [get_ports {JB[1]}]					
 	#set_property IOSTANDARD LVCMOS33 [get_ports {JB[1]}]

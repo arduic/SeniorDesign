@@ -2,6 +2,12 @@ clear;
 close all;
 clc;
 
+input_data_file = 'data_in2.txt';
+output_data_file = 'data_out.txt';
+data_dir = 'C:\Users\lc599\fft_impl\fft_impl.srcs\sources_1\imports\src\';
+input_data_path = strcat(data_dir, input_data_file);
+output_data_path = strcat(data_dir, output_data_file);
+
 % Modify the length of the FFT in the line below
 log2fftlen = 10;
 
@@ -10,14 +16,17 @@ log2fftlen = 10;
 % Since this value is written to and hardcoded in a vhdl
 % script that already exists at runtime.
 % TODO: Have this read from a file instead.
-icpx_width = 32;
+icpx_width = 4;
 
 % Write the package defining length of the FFT
-fo = fopen('fft_len.vhd','w');
+vhdl_file = strcat(data_dir, 'fft_len.vhd');
+fo = fopen(vhdl_file,'w');
 fprintf(fo,'package fft_len is\n');
 fprintf(fo,'constant LOG2_FFT_LEN: integer := %d;\n',log2fftlen);
 fprintf(fo,'constant FFT_LEN: integer := 2 ** LOG2_FFT_LEN;\n');
 fprintf(fo,'constant ICPX_WIDTH: integer := %d;\n',icpx_width);
+fprintf(fo,'constant INPUT_FILE: string := "%s";\n', input_data_path);
+fprintf(fo,'constant OUTPUT_FILE: string := "%s";\n', output_data_path);
 fprintf(fo,'end fft_len;\n');
 fclose(fo);
 
@@ -44,7 +53,6 @@ maxFreq = Fs / 2;
 freq=maxFreq/3
 freq2=freq/4
 
-%mag = 1.5;
 signal = exp(1i*2*pi*freq*t) * 1.5;
 signal2 = exp(1i*(2*pi*freq2*t+pi/2))*3;
 signal = signal + signal2;
@@ -58,7 +66,7 @@ mag_dest = 255;
 re = floor((re + mag_re)*mag_dest/(2*mag_re));
 im = floor((im + mag_im)*mag_dest/(2*mag_im));
 
-fo=fopen('data_in2.txt','w');
+fo=fopen(input_data_path,'w');
 for i=1:len_of_data
    fprintf(fo,'%g %g\r\n',re(i),im(i)); %Because windows doesn't add \r
 end
