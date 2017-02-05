@@ -74,12 +74,16 @@ architecture Behavioral of Counter_Control is
     signal enable_clk_divider : std_logic := '0';
 begin
 
+    --Note to self. This check for only rising edge causes a 2x clock division. need to check for both rise and fall.
+    --Also I am unsure if this clock division is going fast enough. When I set clock speed to 100MHz and do just 2x clock I get 50.
+    --However running this at 450 I get only slightly above 50.... seems strange.
     --clk division process
     clk_divide: process(in_clk) begin
-        --check if the clock is going up and not down
+        --So because VHDL is a STUPID language. You can not check for both rising and falling edges. Or just events. You must specifically look for only one of them.
+        --As such the clock is already divided here and I can not change this fact.
         if rising_edge(in_clk) then
-            --Check if we have counted to the division number
-            if (counter_clock_divide = clk_division-1) then
+            --Check if we have counted to the division number.
+            if (counter_clock_divide = clk_division-2) then --To account for the above mentioned division issue I must reduce this by 2. Once for starting at 0 and once for the if rising
                 tmp_clk_val <= (not(tmp_clk_val) and enable_clk_divider);    --A single clock pulse          --Instead I could have the enable work by taking a bitwise && with the enable and the clock
                 --tmp_clk_val <= not(tmp_clk_val);
                 counter_clock_divide <= 0;
@@ -103,62 +107,15 @@ begin
             reset <= '0';
         end if;
      end process; 
-    
-    
---    start_stop_loop: process(send_pulse,current_val,tmp_clk_val) begin
---        --start signal
---        if rising_edge(send_pulse) then
---            reset <= '0';
---            enable_clk_divider := '1';
---        end if;
-        
---        --stop signal, Loop for counting
---        --while (current_val<count_to-1) loop
---        if (current_val>=count_to-1) then
-        
---        --wait until (current_val>=count_to-1);
---            --wait until rising_edge(tmp_clk_val);
---            --current_val <= current_val+1;
---        --end loop;
---            current_val := 0;
---            enable_clk_divider := '0';
---            reset <= '1';
+     
+    --Simple 2X clock division for testing
+--    clk_div: process(in_clk) begin
+--        if rising_edge(in_clk) then
+--            tmp_clk_val <= not(tmp_clk_val);
 --        end if;
 --    end process;
     
-    --Counter for the Timer
---    increment_counter: process begin
---        --if rising_edge(tmp_clk_val) then
---        wait until rising_edge(tmp_clk_val);
---        current_val <= current_val+1;
---        if (current_val>=count_to-1) then
-----            wait until falling_edge(tmp_clk_val);
-----            wait until rising_edge(tmp_clk_val);   
---            current_val <= 0;     
---        end if;       
---    end process; 
     
-    --trigger for send_pulse to ID when the clock division should start (because triggers are not a thing)
---    send_trigger: process(send_pulse) begin
---        if rising_edge(send_pulse) then
---            --reset <= '0';
---            enable_clk_divider <= '1';
---        end if;
---    end process;
-    
-    --shutoff for the ramping counter to the counter/DAC (This will need to be modified if we want start stop points for future designs)
-    --This is better in the long term then using a wait until inside the clock delay
-    --This is where the halt count comes into play
---    shutoff: process begin
---        wait until rising_edge(tmp_clk_val);
---        if (current_val>=count_to-1) then
---            enable_clk_divider <= '0';
---            reset <= '1';   --I feel like there should be a delay before this occurs but I can't figure out how to do that.
---            wait until falling_edge(tmp_clk_val);
---            wait until rising_edge(tmp_clk_val);
---            reset <= '0';
---        end if;
---    end process;
     
     --clk division hard connection
     out_count_clk <= tmp_clk_val;
