@@ -15,8 +15,7 @@ log2fftlen = 10;
 % When changing though, be sure to restart the whole simulation
 % Since this value is written to and hardcoded in a vhdl
 % script that already exists at runtime.
-% TODO: Have this read from a file instead.
-icpx_width = 4;
+icpx_width = 16;
 
 % Write the package defining length of the FFT
 vhdl_file = strcat(data_dir, 'fft_len.vhd');
