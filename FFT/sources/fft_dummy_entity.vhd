@@ -31,14 +31,24 @@ use work.fft_support_pkg.all;
 
 entity fft_dummy_entity is
 Port (
-    rst_n: in std_logic;
-    clk: in std_logic;
-    valid: out std_logic;
+    rst_n: in std_logic;  -- Reset (toggle 0 to reset)
+    clk: in std_logic;  -- Clock
+    
+    -- Real/imaginary input
     re_in: in std_logic_vector(icpx_width-1 downto 0);
     im_in: in std_logic_vector(icpx_width-1 downto 0);
     
+    valid: out std_logic;  -- Output is valid
+    saddr: out unsigned(LOG2_FFT_LEN-2 downto 0);  -- Output counter; starts when valid is high then resets to 0
+    saddr_rev: out unsigned(LOG2_FFT_LEN-2 downto 0);  -- Bit reverse order of saddr
+    
+    -- Output 1
     icpx_re_vec_out: out std_logic_vector(icpx_width-1 downto 0);
-    icpx_im_vec_out: out std_logic_vector(icpx_width-1 downto 0)
+    icpx_im_vec_out: out std_logic_vector(icpx_width-1 downto 0);
+    
+    -- Output 2
+    icpx_re_vec_out2: out std_logic_vector(icpx_width-1 downto 0);
+    icpx_im_vec_out2: out std_logic_vector(icpx_width-1 downto 0)
 );
 end fft_dummy_entity;
 
@@ -46,7 +56,6 @@ architecture Behavioral of fft_dummy_entity is
 
     type T_OUT_DATA is array (0 to FFT_LEN-1) of icpx_number;
 
-    signal saddr, saddr_rev: unsigned(log2_fft_len-2 downto 0) := to_unsigned(0, log2_fft_len-1);
     signal icpx_out: icpx_number := icpx_zero;
     signal combined: std_logic_vector(2*icpx_width-1 downto 0) := (others => '0');
 
@@ -87,10 +96,5 @@ begin
             sout0 => icpx_out, 
             sout1 => open
         );
-        
-    process(saddr_rev)
-    begin
-        
-    end process;
 
 end Behavioral;
