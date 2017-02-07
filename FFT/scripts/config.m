@@ -11,7 +11,7 @@ output_data_file = 'data_out.txt';
 % CHANGE THIS WHEN STARTING A NEW PROJECT
 % Directory containing intermediate data files
 % This must be an ABSOLUTE path
-data_dir = 'C:\Users\lc599.DREXEL\SeniorDesign\FFT\scripts';
+data_dir = pwd();
 
 % Absolute paths of the data files
 input_data_path = fullfile(data_dir, input_data_file);

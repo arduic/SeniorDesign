@@ -98,20 +98,6 @@ package body icpx is
   end cplx2icpx;
 
 
-  function parts2icpx (
-    constant re: integer;
-    constant im: integer)  
-    return icpx_number is
-
-    variable vres : ICPX_NUMBER := icpx_zero;
-
-  begin  -- cplx2icpx
-    vres.Re := to_signed(re, ICPX_WIDTH);
-    vres.Im := to_signed(im, ICPX_WIDTH);
-    return vres;
-  end parts2icpx;
-
-
   function icpx_zero
     return icpx_number is
 

@@ -48,7 +48,10 @@ Port (
     
     -- Output 2
     icpx_re_vec_out2: out std_logic_vector(icpx_width-1 downto 0);
-    icpx_im_vec_out2: out std_logic_vector(icpx_width-1 downto 0)
+    icpx_im_vec_out2: out std_logic_vector(icpx_width-1 downto 0);
+
+    sout0: out icpx_number;
+    sout1: out icpx_number
 );
 end fft_dummy_entity;
 
@@ -56,7 +59,9 @@ architecture Behavioral of fft_dummy_entity is
 
     type T_OUT_DATA is array (0 to FFT_LEN-1) of icpx_number;
 
-    signal icpx_out: icpx_number := icpx_zero;
+    signal re_out, im_out, re_out2, im_out2: std_logic_vector(icpx_width-1 downto 0) := (others => '0');
+    signal din, icpx_out, icpx_out2: icpx_number := (re => (others => '0'), im => (others => '0'));
+--    signal din, icpx_out, icpx_out2: icpx_number := icpx_zero;
     signal combined: std_logic_vector(2*icpx_width-1 downto 0) := (others => '0');
 
     component fft_engine
@@ -79,22 +84,43 @@ architecture Behavioral of fft_dummy_entity is
 
 begin
 
-    combined(2*icpx_width-1 downto icpx_width) <= re_in;
-    combined(icpx_width-1 downto 0) <= im_in;
-    
-    icpx_re_vec_out <= std_logic_vector(icpx_out.Re);
-    icpx_im_vec_out <= std_logic_vector(icpx_out.Im);
-
     U1: fft_engine 
         port map(
             rst_n => rst_n, 
             clk => clk, 
-            din => stlv2icpx(combined), 
+            din => din, 
             valid => valid,
             saddr => saddr, 
             saddr_rev => saddr_rev, 
             sout0 => icpx_out, 
-            sout1 => open
+            sout1 => icpx_out2
         );
+
+    combined(2*icpx_width-1 downto icpx_width) <= re_in;
+    combined(icpx_width-1 downto 0) <= im_in;
+    din <= stlv2icpx(combined);
+    
+    sout0 <= icpx_out;
+    sout1 <= icpx_out2;
+
+    
+    icpx_re_vec_out <= std_logic_vector(to_signed(to_integer(icpx_out.Re), icpx_width));
+    icpx_im_vec_out <= std_logic_vector(to_signed(to_integer(icpx_out.Im), icpx_width));
+    
+    icpx_re_vec_out2 <= std_logic_vector(to_signed(to_integer(icpx_out2.Re), icpx_width));
+    icpx_im_vec_out2 <= std_logic_vector(to_signed(to_integer(icpx_out2.Im), icpx_width));
+    
+    
+--    re_out <= std_logic_vector(to_signed(to_integer(icpx_out.Re), icpx_width));
+--    im_out <= std_logic_vector(to_signed(to_integer(icpx_out.Im), icpx_width));
+    
+--    re_out2 <= std_logic_vector(to_signed(to_integer(icpx_out2.Re), icpx_width));
+--    im_out2 <= std_logic_vector(to_signed(to_integer(icpx_out2.Im), icpx_width));
+    
+--    icpx_re_vec_out <= re_out;
+--    icpx_im_vec_out <= im_out;
+    
+--    icpx_re_vec_out2 <= re_out2;
+--    icpx_im_vec_out2 <= im_out2;
 
 end Behavioral;
