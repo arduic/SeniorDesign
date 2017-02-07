@@ -8,7 +8,8 @@
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
--- Description: 
+-- Description: Wrapper for fft_engine but accepting and returning std_logic_vectors that represent
+-- integers instead of floats so it can accept output straight from dac.
 -- 
 -- Dependencies: 
 -- 
@@ -43,30 +44,23 @@ Port (
     saddr_rev: out unsigned(LOG2_FFT_LEN-2 downto 0);  -- Bit reverse order of saddr
     
     -- Output 1
-    icpx_re_vec_out: out std_logic_vector(icpx_width-1 downto 0);
-    icpx_im_vec_out: out std_logic_vector(icpx_width-1 downto 0);
+    re_out0: out std_logic_vector(icpx_width-1 downto 0);
+    im_out0: out std_logic_vector(icpx_width-1 downto 0);
     
     -- Output 2
-    icpx_re_vec_out2: out std_logic_vector(icpx_width-1 downto 0);
-    icpx_im_vec_out2: out std_logic_vector(icpx_width-1 downto 0);
-
-    sout0: out icpx_number;
-    sout1: out icpx_number
+    re_out1: out std_logic_vector(icpx_width-1 downto 0);
+    im_out1: out std_logic_vector(icpx_width-1 downto 0)
 );
 end fft_dummy_entity;
 
 architecture Behavioral of fft_dummy_entity is
 
-    type T_OUT_DATA is array (0 to FFT_LEN-1) of icpx_number;
-
-    signal re_out, im_out, re_out2, im_out2: std_logic_vector(icpx_width-1 downto 0) := (others => '0');
-    signal din, icpx_out, icpx_out2: icpx_number := (re => (others => '0'), im => (others => '0'));
---    signal din, icpx_out, icpx_out2: icpx_number := icpx_zero;
+    signal din, icpx_out0, icpx_out1: icpx_number := icpx_zero;
     signal combined: std_logic_vector(2*icpx_width-1 downto 0) := (others => '0');
 
     component fft_engine
       generic (
-        LOG2_FFT_LEN : integer := log2_fft_len);       -- Defines order of FFT
+        LOG2_FFT_LEN : integer := log2_fft_len); -- Defines order of FFT
       port (
         -- System interface
         rst_n     : in  std_logic;
@@ -92,35 +86,18 @@ begin
             valid => valid,
             saddr => saddr, 
             saddr_rev => saddr_rev, 
-            sout0 => icpx_out, 
-            sout1 => icpx_out2
+            sout0 => icpx_out0, 
+            sout1 => icpx_out1
         );
 
     combined(2*icpx_width-1 downto icpx_width) <= re_in;
     combined(icpx_width-1 downto 0) <= im_in;
     din <= stlv2icpx(combined);
     
-    sout0 <= icpx_out;
-    sout1 <= icpx_out2;
-
+    re_out0 <= std_logic_vector(to_signed(to_integer(icpx_out0.Re), icpx_width));
+    im_out0 <= std_logic_vector(to_signed(to_integer(icpx_out0.Im), icpx_width));
     
-    icpx_re_vec_out <= std_logic_vector(to_signed(to_integer(icpx_out.Re), icpx_width));
-    icpx_im_vec_out <= std_logic_vector(to_signed(to_integer(icpx_out.Im), icpx_width));
-    
-    icpx_re_vec_out2 <= std_logic_vector(to_signed(to_integer(icpx_out2.Re), icpx_width));
-    icpx_im_vec_out2 <= std_logic_vector(to_signed(to_integer(icpx_out2.Im), icpx_width));
-    
-    
---    re_out <= std_logic_vector(to_signed(to_integer(icpx_out.Re), icpx_width));
---    im_out <= std_logic_vector(to_signed(to_integer(icpx_out.Im), icpx_width));
-    
---    re_out2 <= std_logic_vector(to_signed(to_integer(icpx_out2.Re), icpx_width));
---    im_out2 <= std_logic_vector(to_signed(to_integer(icpx_out2.Im), icpx_width));
-    
---    icpx_re_vec_out <= re_out;
---    icpx_im_vec_out <= im_out;
-    
---    icpx_re_vec_out2 <= re_out2;
---    icpx_im_vec_out2 <= im_out2;
+    re_out1 <= std_logic_vector(to_signed(to_integer(icpx_out1.Re), icpx_width));
+    im_out1 <= std_logic_vector(to_signed(to_integer(icpx_out1.Im), icpx_width));
 
 end Behavioral;
