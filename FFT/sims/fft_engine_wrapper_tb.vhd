@@ -4,7 +4,7 @@
 -- 
 -- Create Date: 01/31/2017 01:34:00 PM
 -- Design Name: 
--- Module Name: fft_tb_int_to_real - Behavioral
+-- Module Name: fft_engine_wrapper_tb - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -32,10 +32,10 @@ use work.icpx.all;
 use work.fft_support_pkg.all;
 
 
-entity fft_tb_int_to_real is
-end fft_tb_int_to_real;
+entity fft_engine_wrapper_tb is
+end fft_engine_wrapper_tb;
 
-architecture Behavioral of fft_tb_int_to_real is
+architecture Behavioral of fft_engine_wrapper_tb is
 
   type T_OUT_DATA is array (0 to FFT_LEN-1) of std_logic_vector(2*icpx_width-1 downto 0);
     

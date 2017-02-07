@@ -4,7 +4,7 @@
 -- 
 -- Create Date: 01/31/2017 03:58:58 PM
 -- Design Name: 
--- Module Name: fft_dummy_entity - Behavioral
+-- Module Name: fft_engine_wrapper - Behavioral
 -- Project Name: 
 -- Target Devices: 
 -- Tool Versions: 
@@ -30,7 +30,7 @@ use work.fft_len.all;
 use work.icpx.all;
 use work.fft_support_pkg.all;
 
-entity fft_dummy_entity is
+entity fft_engine_wrapper is
 Port (
     rst_n: in std_logic;  -- Reset (toggle 0 to reset)
     clk: in std_logic;  -- Clock
@@ -51,9 +51,9 @@ Port (
     re_out1: out std_logic_vector(icpx_width-1 downto 0);
     im_out1: out std_logic_vector(icpx_width-1 downto 0)
 );
-end fft_dummy_entity;
+end fft_engine_wrapper;
 
-architecture Behavioral of fft_dummy_entity is
+architecture Behavioral of fft_engine_wrapper is
 
     signal din, icpx_out0, icpx_out1: icpx_number := icpx_zero;
     signal combined: std_logic_vector(2*icpx_width-1 downto 0) := (others => '0');
