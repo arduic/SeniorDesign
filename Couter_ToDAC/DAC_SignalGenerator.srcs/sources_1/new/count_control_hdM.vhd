@@ -38,7 +38,7 @@ entity count_control_hdM is
     );
   Port (
     clk : in std_logic;
-    
+    fast_clk_out : out std_logic;
         --Counter stuff
     counter_clk : out std_logic;
     counter_pulse : in std_logic;
@@ -48,6 +48,10 @@ entity count_control_hdM is
 end count_control_hdM;
 
 architecture Behavioral of count_control_hdM is
+
+    signal highSpeed_clk: std_logic;
+    signal highSpeed_locked: std_logic;
+    signal highSped_reset: std_logic;
 
     component Counter_Control is
         generic(
@@ -62,6 +66,16 @@ architecture Behavioral of count_control_hdM is
             --halt_count : out std_logic      --(CE)
         );
     end component Counter_Control;
+    
+    component clk_wiz_0 is
+        Port (
+            clk_out1: out std_logic;
+            locked: out std_logic;
+            
+            reset: in std_logic;
+            clk_in1: in std_logic
+    );
+    end component clk_wiz_0;
 
 begin
 
@@ -72,13 +86,22 @@ begin
     )
     port map    (  
         -- general
-        in_clk               => clk,
+        in_clk               => highSpeed_clk,
+        --in_clk               => clk,
         out_count_clk               => counter_clk,
         send_pulse      => counter_pulse,
         reset  => counter_reset
         --halt_count  => counter_halt
     );
-
     
+    clk_450_generator : clk_wiz_0
+    port map (
+        clk_out1 => highSpeed_clk,
+        locked => highSpeed_locked,
+        reset => highSped_reset,
+        clk_in1 => clk
+    );
+    
+    fast_clk_out <= highSpeed_clk;
 
 end Behavioral;
