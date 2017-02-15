@@ -38,6 +38,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+USE ieee.numeric_std.ALL;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -62,8 +63,8 @@ entity mux_sel is
 end mux_sel;
 
 architecture Behavioral of mux_sel is
-
+   signal tmp_width : integer;
 begin
-
+    tmp_width <= to_integer(unsigned(requested_width));
 
 end Behavioral;
