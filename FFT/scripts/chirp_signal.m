@@ -31,7 +31,7 @@ figure;
 plot(f, p1);
 
 
-outputs = fft_window(x, 128, f);
+outputs = fft_window(t, x, 128, Fs);
 
 % Find dominant frequencies
 f = Fs*(0:(L/2))/L;
