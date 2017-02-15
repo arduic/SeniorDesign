@@ -53,7 +53,7 @@ use IEEE.STD_LOGIC_1164.ALL;
 entity Counter_Control is
     generic(
         clk_division : integer := 2;    -- This is calculated by taking Val = ceil(base_clk_speed/2^num_bits) where ceil goes only to power of 2 numbers 450/2^8=2
-        count_to : integer := 225       --Number that the counter should go to. calculate by base_clk_speed/clk_division
+        count_to : integer := 22       --Number that the counter should go to. calculate by base_clk_speed/clk_division
     );
     Port ( 
         in_clk : in std_logic;
