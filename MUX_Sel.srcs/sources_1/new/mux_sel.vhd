@@ -49,22 +49,25 @@ USE ieee.numeric_std.ALL;
 --library UNISIM;
 --use UNISIM.VComponents.all;
 
+--WARNING: The width and height must be powers of 2. If you don't need it just round up. Also Note the comment on requested_width it describes how to pass this data.
 entity mux_sel is
     Generic (
         array_width : integer := 8;     --Width/Height of the array (after any hardware meshing of data) in base 2
-        array_height : integer := 8;
+        array_height : integer := 8;    
         mux_size : integer := 3         --binary size of mux used
     );
     Port ( 
-        requested_width : in std_logic_vector(array_width-1 downto 0);
+        requested_width : in std_logic_vector(array_width-1 downto 0);  --0 indexed, How to create this vector for calling assuming you start with an integer. std_logic_vector(unsigned(integerVal,arrayWidth)) YOU MUST PAD THE 0'S AS THIS DOES. Always do max size
         requested_height : in std_logic_vector(array_height-1 downto 0);
         selection: out std_logic_vector(array_width+array_height-1 downto 0)
     );
 end mux_sel;
 
 architecture Behavioral of mux_sel is
-   signal tmp_width : integer;
+   signal tmp_sel : std_logic_vector(array_width+array_height-1 downto 0);
 begin
-    tmp_width <= to_integer(unsigned(requested_width));
+    tmp_sel <= requested_height & requested_width;
+    
+    selection <= tmp_sel;
 
 end Behavioral;
