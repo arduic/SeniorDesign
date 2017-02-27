@@ -20,7 +20,7 @@ The following is optional steps for seting up to use the modelsim simulator inst
 2. In the `Simulator executable path`, paste in the directory your modelsim executable is held in and hit `compile`. The actual compiling may take a while to finish.
 3. Under tools, click `options` and change the `ModelSim install path` under `3rd Part Tools` section to the directory containing the modelsim executable. This is the same one entered in the `Simulator executable path`. `Apply` and `Ok`.
 4. In the simulation settings, select Modelsim simulator as the target simulator. A popup may appear warning you to compile the simulation libraries before running the simulation, which you have already done.
-5. Change the `Simulation top module name` to `fft_tb_int_to_real`. This is the testbench used. `Apply` then `ok`.
+5. Change the `Simulation top module name` to `fft_engine_wrapper_tb`. This is the testbench used. `Apply` then `ok`.
 
 
 ## Simulation Usage

@@ -46,7 +46,7 @@ architecture Behavioral of fft_engine_wrapper_tb is
   signal rst_n : std_logic := '0';
   signal Clk : std_logic := '1';
 
-  component fft_dummy_entity is
+  component fft_engine_wrapper is
     port (
         rst_n: in std_logic;  -- Reset (toggle 0 to reset)
         clk: in std_logic;  -- Clock
@@ -71,7 +71,7 @@ architecture Behavioral of fft_engine_wrapper_tb is
 
 begin
   
-  fft_engine_1: fft_dummy_entity
+  fft_engine_1: fft_engine_wrapper
     port map (
       rst_n     => rst_n,
       clk       => clk,
