@@ -113,13 +113,17 @@ begin
   vout(to_integer('1' & saddr_rev)) <= (re_out1 & im_out1);
       
   process(clk, saddr_tmp)
-    variable max_freq: integer := 0;
-    variable max_freq_idx: integer := 0;
-    variable freq_int_re, freq_int_im, mag: integer;
+    variable max_freq: integer;
+    variable max_freq_idx: integer;
+    variable freq_int_re, freq_int_im, mag, i: integer;
   begin
     if saddr_tmp = fft_len/2-1 then
         -- Find max
-        for i in 0 to fft_len-1 loop
+        i := 0;
+        max_freq := 0;
+        max_freq_idx := 0;
+--        for i in 0 to fft_len-1 loop
+        while i < fft_len loop
             freq_int_re := to_integer(signed(vout(i)(2*icpx_width-1 downto icpx_width)));
             freq_int_im := to_integer(signed(vout(i)(icpx_width-1 downto 0)));
             
@@ -127,13 +131,14 @@ begin
             mag := freq_int_re**2 + freq_int_im**2;
             if mag > max_freq then
                 max_freq := mag;
-                max_freq_idx := i;
+--                max_freq_idx := i;  -- I think this line causes it to take forever to synthesize
             end if;
+            i := i + 1;
         end loop;
         valid_tmp <= '1';
         re_out <= vout(max_freq_idx)(2*icpx_width-1 downto icpx_width);
         im_out <= vout(max_freq_idx)(icpx_width-1 downto 0);
-        --idx <= to_unsigned(max_freq_idx, log2_fft_len-1);
+        idx <= to_unsigned(max_freq_idx, log2_fft_len);
     else
         valid_tmp <= '0';
     end if;
