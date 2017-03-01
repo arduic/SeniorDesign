@@ -26,18 +26,14 @@ len_of_data = fftlen;  % Number of samples in input signal. This can be longer t
 % Time vector
 t = time_from_sample_length(Fs, len_of_data);
 
-% Maximum frequency the signal can be since
-% Nyquist limit is 2*sampling freqiency
-maxFreq = Fs / 2;
-freq = maxFreq/3
-freq2 = freq/4
-
-signal = exp(1i*2*pi*freq*t) * 1.5;
-signal2 = exp(1i*(2*pi*freq2*t+pi/2))*3;
-signal = signal + signal2;
+%signal = sum_of_sins(Fs, t);
+signal = single_pulse(t, 1/100);
+%signal = fft_modulated_pulse(t, 1/100, 10*10^9);
 
 re = real(signal);
 im = imag(signal);
+re_i = re;
+im_i = im;
 
 % The FFT implementation takes std_logic_vectors that
 % represent integer values. This is for scaling and 
@@ -45,8 +41,23 @@ im = imag(signal);
 mag_re = max(abs(re));
 mag_im = max(abs(im));
 mag_dest = 255;
-re = floor((re + mag_re)*mag_dest/(2*mag_re));
-im = floor((im + mag_im)*mag_dest/(2*mag_im));
+
+re = floor(normalize(re, 0, mag_dest));
+im = floor(normalize(im, 0, mag_dest));
+% re = floor((re + mag_re)*mag_dest/(2*mag_re));
+% im = floor((im + mag_im)*mag_dest/(2*mag_im));
+
+% Check for NaNs which result from 0s in original vector
+re(isnan(re)) = 0;
+im(isnan(im)) = 0;
+
+% Check signal
+figure;
+plot(t, sqrt(re.^2+im.^2));
+title('Normalized signal');
+figure;
+plot(t, sqrt(re_i.^2+im_i.^2));
+title('Original signal');
 
 % Write to the sample data input file
 fo=fopen(input_data_path,'wt');

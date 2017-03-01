@@ -19,7 +19,7 @@ output_data_path = fullfile(data_dir, output_data_file);
 
 % CHANGE THIS WHEN STARTING A NEW PROJECT
 % ABSOLUTE path to fft_len.vhd in the vivado project
-fft_config_path = 'C:\Users\lc599.DREXEL\FFT_impl\FFT_impl.srcs\sources_1\imports\sources\fft_len.vhd';
+fft_config_path = 'C:\Users\lc599\FFT_impl\FFT_impl.srcs\sources_1\imports\sources\fft_len.vhd';
 
 
 %% FFT Settings
@@ -31,9 +31,9 @@ fftlen = 2^log2fftlen;  % Transform length/point size
 % When changing though, be sure to restart the whole simulation
 % Since this value is written to and hardcoded in a vhdl
 % script that already exists at runtime.
-icpx_width = 16;
+icpx_width = 32;
 
 
 %% Signal settings
-Fs=10*10^9;  % Sample rate
+Fs=100*10^9;  % Sample rate
 T = 1/Fs;  % Sample period
