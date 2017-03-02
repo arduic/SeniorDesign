@@ -14,18 +14,18 @@ for i=1:L
     mag(i)=sqrt(M(i,1)^2+M(i,2)^2);
 end
 
-% f = Fs/L*(0:(L-1));
-f = Fs*(0:(L/2))/L;
+f = Fs/L*(0:(L-1));
+% f = Fs*(0:(L/2))/L;
 
 % Convert to single sided amplitudes
 p1 = mag(1:(L/2)+1);
 p1(2:end-1) = 2*p1(2:end-1);
 
 % If data is noisy, this will find noisy peaks
-[pks, locs] = findpeaks(p1);
+[pks, locs] = findpeaks(mag);
 % disp('Found Peaks at');
 % disp(f(locs));
 
 figure;
-plot(f, p1, f(locs), pks, 'o');
+plot(f, mag, f(locs), pks, 'o');
 title('Single Sided FFT Spectrum');

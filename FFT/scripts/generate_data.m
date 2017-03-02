@@ -27,8 +27,8 @@ len_of_data = fftlen;  % Number of samples in input signal. This can be longer t
 t = time_from_sample_length(Fs, len_of_data);
 
 %signal = sum_of_sins(Fs, t);
-signal = single_pulse(t, 1/100);
-%signal = fft_modulated_pulse(t, 1/100, 10*10^9);
+%signal = single_pulse(t, 1/100);
+signal = fft_modulated_pulse(t, 1/100, 20*10^9);
 
 re = real(signal);
 im = imag(signal);
@@ -42,10 +42,10 @@ mag_re = max(abs(re));
 mag_im = max(abs(im));
 mag_dest = 255;
 
-re = floor(normalize(re, 0, mag_dest));
-im = floor(normalize(im, 0, mag_dest));
-% re = floor((re + mag_re)*mag_dest/(2*mag_re));
-% im = floor((im + mag_im)*mag_dest/(2*mag_im));
+% re = floor(normalize(re, 0, mag_dest));
+% im = floor(normalize(im, 0, mag_dest));
+re = floor((re + mag_re)*mag_dest/(2*mag_re));
+im = floor((im + mag_im)*mag_dest/(2*mag_im));
 
 % Check for NaNs which result from 0s in original vector
 re(isnan(re)) = 0;
