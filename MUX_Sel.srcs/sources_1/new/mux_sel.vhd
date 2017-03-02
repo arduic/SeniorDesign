@@ -59,7 +59,7 @@ entity mux_sel is
     Port ( 
         requested_width : in std_logic_vector(array_width-1 downto 0);  --0 indexed, How to create this vector for calling assuming you start with an integer. std_logic_vector(unsigned(integerVal,arrayWidth)) YOU MUST PAD THE 0'S AS THIS DOES. Always do max size
         requested_height : in std_logic_vector(array_height-1 downto 0);
-        selection: out std_logic_vector(array_width+array_height-1 downto 0)
+        selection : out std_logic_vector(array_width+array_height-1 downto 0)
     );
 end mux_sel;
 
