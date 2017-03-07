@@ -32,6 +32,9 @@ for i=1:size(data, 3)
     
     figure;
     plot(f, mag, f(locs), pks, 'o');
-%     plot(f2, p1, f2(locs2), pks2, 'o');
     title(sprintf('Magnitude of output for data %d', i));
+
+%     figure;
+%     plot(f2, p1, f2(locs2), pks2, 'o');  % Single sided fft spectrum
+
 end

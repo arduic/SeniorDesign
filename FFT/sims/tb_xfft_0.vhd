@@ -101,13 +101,13 @@ architecture tb of tb_xfft_0 is
   -- Data slave channel signals
   signal s_axis_data_tvalid          : std_logic := '0';  -- payload is valid
   signal s_axis_data_tready          : std_logic := '1';  -- slave is ready
-  signal s_axis_data_tdata           : std_logic_vector(31 downto 0) := (others => '0');  -- data payload
+  signal s_axis_data_tdata           : std_logic_vector(15 downto 0) := (others => '0');  -- data payload
   signal s_axis_data_tlast           : std_logic := '0';  -- indicates end of packet
 
   -- Data master channel signals
   signal m_axis_data_tvalid          : std_logic := '0';  -- payload is valid
   signal m_axis_data_tready          : std_logic := '1';  -- slave is ready
-  signal m_axis_data_tdata           : std_logic_vector(31 downto 0) := (others => '0');  -- data payload
+  signal m_axis_data_tdata           : std_logic_vector(15 downto 0) := (others => '0');  -- data payload
   signal m_axis_data_tlast           : std_logic := '0';  -- indicates end of packet
 
   -- Event signals
@@ -130,18 +130,18 @@ architecture tb of tb_xfft_0 is
   signal s_axis_config_tdata_scale_sch    : std_logic_vector(9 downto 0) := (others => '0');  -- scaling schedule
 
   -- Data slave channel alias signals
-  signal s_axis_data_tdata_re             : std_logic_vector(15 downto 0) := (others => '0');  -- real data
-  signal s_axis_data_tdata_im             : std_logic_vector(15 downto 0) := (others => '0');  -- imaginary data
+  signal s_axis_data_tdata_re             : std_logic_vector(7 downto 0) := (others => '0');  -- real data
+  signal s_axis_data_tdata_im             : std_logic_vector(7 downto 0) := (others => '0');  -- imaginary data
 
   -- Data master channel alias signals
-  signal m_axis_data_tdata_re             : std_logic_vector(15 downto 0) := (others => '0');  -- real data
-  signal m_axis_data_tdata_im             : std_logic_vector(15 downto 0) := (others => '0');  -- imaginary data
+  signal m_axis_data_tdata_re             : std_logic_vector(7 downto 0) := (others => '0');  -- real data
+  signal m_axis_data_tdata_im             : std_logic_vector(7 downto 0) := (others => '0');  -- imaginary data
 
   -----------------------------------------------------------------------
   -- Constants, types and functions to create input data
   -----------------------------------------------------------------------
 
-  constant IP_WIDTH    : integer := 16;
+  constant IP_WIDTH    : integer := 8;
   constant MAX_SAMPLES : integer := 2**10;  -- maximum number of samples in a frame
   type T_IP_SAMPLE is record
     re : std_logic_vector(IP_WIDTH-1 downto 0);
@@ -164,25 +164,53 @@ architecture tb of tb_xfft_0 is
     variable im_real : real;
     variable re_int : integer;
     variable im_int : integer;
-    constant DATA_WIDTH : integer := 14;
+    constant DATA_WIDTH : integer := 6;
+    
+    file data_out: text open write_mode is "C:\Users\lc599.DREXEL\Desktop\data_in_ref.txt";
+    variable output_line: line;
+    constant sep: string := " ";
   begin
     for i in 0 to MAX_SAMPLES-1 loop
-      theta   := real(i) / real(MAX_SAMPLES) * 100.0 * 2.0 * MATH_PI;
+      theta   := real(i) / real(MAX_SAMPLES) * 10.0 * 2.0 * MATH_PI;
       re_real := cos(-theta);
       im_real := sin(-theta);
-      theta2  := real(i) / real(MAX_SAMPLES) * 25.0 * 2.0 * MATH_PI;
+      theta2  := real(i) / real(MAX_SAMPLES) * 30.0 * 2.0 * MATH_PI;
       re_real := re_real + (cos(-theta2) / 4.0);
       im_real := im_real + (sin(-theta2) / 4.0);
       re_int  := integer(round(re_real * real(2**(DATA_WIDTH))));
       im_int  := integer(round(im_real * real(2**(DATA_WIDTH))));
       result(i).re := std_logic_vector(to_signed(re_int, IP_WIDTH));
       result(i).im := std_logic_vector(to_signed(im_int, IP_WIDTH));
+      
+      write(output_line, integer'image(re_int));
+      write(output_line, sep);
+      write(output_line, integer'image(im_int));
+      writeline(data_out, output_line);
     end loop;
     return result;
   end function create_ip_table;
+  
+  function create_ip_table_from_file return T_IP_TABLE is
+    file data_in: text open read_mode is "C:\Users\lc599.DREXEL\Desktop\data_in.txt";
+    variable input_line: line;
+    variable tre, tim: integer;
+    
+    variable result: T_IP_TABLE;
+  begin
+    for i in 0 to MAX_SAMPLES-1 loop
+        readline(data_in, input_line);
+        read(input_line, tre);
+        read(input_line, tim);
+        
+        result(i).re := std_logic_vector(to_signed(tre, IP_WIDTH));
+        result(i).im := std_logic_vector(to_signed(tim, IP_WIDTH));
+    end loop;
+    return result;
+  end function;
 
   -- Call the function to create the input data
-  constant IP_DATA : T_IP_TABLE := create_ip_table;
+--  constant IP_DATA : T_IP_TABLE := create_ip_table;
+  constant IP_DATA: T_IP_TABLE := create_ip_table_from_file;
 
   -----------------------------------------------------------------------
   -- Testbench signals
@@ -202,6 +230,7 @@ architecture tb of tb_xfft_0 is
   signal ip_frame        : integer    := 0;    -- input / configuration frame number
   signal op_data         : T_IP_TABLE := IP_TABLE_CLEAR;  -- recorded output data
   signal op_frame        : integer    := 0;    -- output frame number (incremented at end of frame output)
+
   signal file_counter: integer := 0;
 
 begin
@@ -262,7 +291,7 @@ begin
     -- data is the data value to drive on the tdata signal
     -- last is the bit value to drive on the tlast signal
     -- valid_mode defines how to drive TVALID: 0 = TVALID always high, 1 = TVALID low occasionally
-    procedure drive_sample ( data       : std_logic_vector(31 downto 0);
+    procedure drive_sample ( data       : std_logic_vector(15 downto 0);
                              last       : std_logic;
                              valid_mode : integer := 0 ) is
     begin
@@ -297,10 +326,9 @@ begin
                             valid_mode   : integer := 0 ) is
       variable samples : integer;
       variable index   : integer;
-      variable sample_data : std_logic_vector(31 downto 0);
+      variable sample_data : std_logic_vector(15 downto 0);
       variable sample_last : std_logic;
       
-
       file data_out: text open write_mode is "C:\Users\lc599.DREXEL\Desktop\data_out" & integer'image(file_counter) & ".txt";
       constant sep: string := " ";
       variable output_line: line;
@@ -309,8 +337,8 @@ begin
       index  := 0;
       while index < data'length loop
         -- Look up sample data in data table, construct TDATA value
-        sample_data(15 downto 0)  := data(index).re;                  -- real data
-        sample_data(31 downto 16) := data(index).im;                  -- imaginary data
+        sample_data(7 downto 0)  := data(index).re;                  -- real data
+        sample_data(15 downto 8) := data(index).im;                  -- imaginary data
         -- Construct TLAST's value
         index := index + 1;
         if index >= data'length then
@@ -319,9 +347,9 @@ begin
           sample_last := '0';
         end if;
         
-        write(output_line, integer'image(to_integer(signed(sample_data(15 downto 0)))));
+        write(output_line, integer'image(to_integer(signed(sample_data(IP_WIDTH-1 downto 0)))));
         write(output_line, sep);
-        write(output_line, integer'image(to_integer(signed(sample_data(31 downto 16)))));
+        write(output_line, integer'image(to_integer(signed(sample_data(2*IP_WIDTH-1 downto IP_WIDTH)))));
         writeline(data_out, output_line);
         
         -- Drive the sample
@@ -541,8 +569,8 @@ begin
         index := op_sample;
         -- Digit-reverse output sample number, to get actual sample index as outputs are in digit-reversed order
         index := digit_reverse_int(index, 10);
-        op_data(index).re <= m_axis_data_tdata(15 downto 0);
-        op_data(index).im <= m_axis_data_tdata(31 downto 16);
+        op_data(index).re <= m_axis_data_tdata(7 downto 0);
+        op_data(index).im <= m_axis_data_tdata(15 downto 8);
         -- Increment output sample counter
         if m_axis_data_tlast = '1' then  -- end of output frame: reset sample counter and increment frame counter
           op_sample <= 0;
@@ -565,7 +593,7 @@ begin
     -- Previous values of data master channel signals
     variable m_data_tvalid_prev : std_logic := '0';
     variable m_data_tready_prev : std_logic := '0';
-    variable m_data_tdata_prev  : std_logic_vector(31 downto 0) := (others => '0');
+    variable m_data_tdata_prev  : std_logic_vector(15 downto 0) := (others => '0');
   begin
 
     -- Check outputs T_STROBE time after rising edge of clock
@@ -614,12 +642,12 @@ begin
   s_axis_config_tdata_scale_sch  <= s_axis_config_tdata(10 downto 1);
 
   -- Data slave channel alias signals
-  s_axis_data_tdata_re           <= s_axis_data_tdata(15 downto 0);
-  s_axis_data_tdata_im           <= s_axis_data_tdata(31 downto 16);
+  s_axis_data_tdata_re           <= s_axis_data_tdata(7 downto 0);
+  s_axis_data_tdata_im           <= s_axis_data_tdata(15 downto 8);
 
   -- Data master channel alias signals
-  m_axis_data_tdata_re           <= m_axis_data_tdata(15 downto 0);
-  m_axis_data_tdata_im           <= m_axis_data_tdata(31 downto 16);
+  m_axis_data_tdata_re           <= m_axis_data_tdata(7 downto 0);
+  m_axis_data_tdata_im           <= m_axis_data_tdata(15 downto 8);
 
 end tb;
 
