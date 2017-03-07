@@ -4,18 +4,18 @@ clc;
 
 fft_len = 2^10;
 L = fft_len;
-Fs = 1000;
+Fs = 1024;
 ip_width = 8;
 
 t = time_from_sample_length(Fs, fft_len);
 
 % signal = exp(1i*2*pi*10*t) + exp(1i*2*pi*30*t)/4;  % good
-% signal = sin(2*pi*20*t) + sin(2*pi*60*t)/4;  % good
+signal = sin(2*pi*20*t) + sin(2*pi*60*t)/4;  % good
 % signal = chirp(t, 10, t(end), 100);  % good
 % signal = single_pulse(t, 1/100);  % bad
 % signal = single_pulse(t, 1/10);  % good
 % signal = fft_modulated_pulse(t, 1/100, 100);  % bad
-signal = fft_modulated_pulse(t, 1/10, 100);  % good
+% signal = fft_modulated_pulse(t, 1/10, 100);  % good
 
 f = Fs/L*(0:(L-1));
 Y = fft(signal);

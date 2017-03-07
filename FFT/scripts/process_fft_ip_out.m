@@ -5,7 +5,7 @@ clc;
 data_out = 'C:\\Users\\lc599\\Desktop\\data_out%d.txt';
 data = zeros(0,0,0);
 
-Fs = 1000;
+Fs = 1024;
 
 for i=0:5
     filename = sprintf(data_out, i);
