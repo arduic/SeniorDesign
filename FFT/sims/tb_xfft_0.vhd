@@ -108,6 +108,7 @@ architecture tb of tb_xfft_0 is
   signal m_axis_data_tvalid          : std_logic := '0';  -- payload is valid
   signal m_axis_data_tready          : std_logic := '1';  -- slave is ready
   signal m_axis_data_tdata           : std_logic_vector(15 downto 0) := (others => '0');  -- data payload
+  signal m_axis_data_tuser           : std_logic_vector(15 downto 0) := (others => '0');  -- user-defined payload
   signal m_axis_data_tlast           : std_logic := '0';  -- indicates end of packet
 
   -- Event signals
@@ -136,6 +137,7 @@ architecture tb of tb_xfft_0 is
   -- Data master channel alias signals
   signal m_axis_data_tdata_re             : std_logic_vector(7 downto 0) := (others => '0');  -- real data
   signal m_axis_data_tdata_im             : std_logic_vector(7 downto 0) := (others => '0');  -- imaginary data
+  signal m_axis_data_tuser_xk_index       : std_logic_vector(9 downto 0) := (others => '0');  -- sample index
 
   -----------------------------------------------------------------------
   -- Constants, types and functions to create input data
@@ -165,33 +167,25 @@ architecture tb of tb_xfft_0 is
     variable re_int : integer;
     variable im_int : integer;
     constant DATA_WIDTH : integer := 6;
-    
-    file data_out: text open write_mode is "C:\Users\lc599.DREXEL\Desktop\data_in_ref.txt";
-    variable output_line: line;
-    constant sep: string := " ";
   begin
     for i in 0 to MAX_SAMPLES-1 loop
-      theta   := real(i) / real(MAX_SAMPLES) * 10.0 * 2.0 * MATH_PI;
+      theta   := real(i) / real(MAX_SAMPLES) * 2.6 * 2.0 * MATH_PI;
       re_real := cos(-theta);
       im_real := sin(-theta);
-      theta2  := real(i) / real(MAX_SAMPLES) * 30.0 * 2.0 * MATH_PI;
+      theta2  := real(i) / real(MAX_SAMPLES) * 23.2 * 2.0 * MATH_PI;
       re_real := re_real + (cos(-theta2) / 4.0);
       im_real := im_real + (sin(-theta2) / 4.0);
       re_int  := integer(round(re_real * real(2**(DATA_WIDTH))));
       im_int  := integer(round(im_real * real(2**(DATA_WIDTH))));
       result(i).re := std_logic_vector(to_signed(re_int, IP_WIDTH));
       result(i).im := std_logic_vector(to_signed(im_int, IP_WIDTH));
-      
-      write(output_line, integer'image(re_int));
-      write(output_line, sep);
-      write(output_line, integer'image(im_int));
-      writeline(data_out, output_line);
     end loop;
     return result;
   end function create_ip_table;
   
+  
   function create_ip_table_from_file return T_IP_TABLE is
-    file data_in: text open read_mode is "C:\Users\lc599.DREXEL\Desktop\data_in.txt";
+    file data_in: text open read_mode is "C:\Users\lc599\Desktop\data_in.txt";
     variable input_line: line;
     variable tre, tim: integer;
     
@@ -209,7 +203,7 @@ architecture tb of tb_xfft_0 is
   end function;
 
   -- Call the function to create the input data
---  constant IP_DATA : T_IP_TABLE := create_ip_table;
+--  constant IP_DATA : T_IP_TABLE := create_ip_table;                                                             
   constant IP_DATA: T_IP_TABLE := create_ip_table_from_file;
 
   -----------------------------------------------------------------------
@@ -225,8 +219,6 @@ architecture tb of tb_xfft_0 is
   signal cfg_scale_sch : T_CFG_SCALE_SCH := DEFAULT;
 
   -- Recording output data, for reuse as input data
-  signal op_sample       : integer    := 0;    -- output sample number
-  signal op_sample_first : std_logic  := '1';  -- indicates first output sample of a frame
   signal ip_frame        : integer    := 0;    -- input / configuration frame number
   signal op_data         : T_IP_TABLE := IP_TABLE_CLEAR;  -- recorded output data
   signal op_frame        : integer    := 0;    -- output frame number (incremented at end of frame output)
@@ -252,6 +244,7 @@ begin
       m_axis_data_tvalid          => m_axis_data_tvalid,
       m_axis_data_tready          => m_axis_data_tready,
       m_axis_data_tdata           => m_axis_data_tdata,
+      m_axis_data_tuser           => m_axis_data_tuser,
       m_axis_data_tlast           => m_axis_data_tlast,
       event_frame_started         => event_frame_started,
       event_tlast_unexpected      => event_tlast_unexpected,
@@ -329,7 +322,7 @@ begin
       variable sample_data : std_logic_vector(15 downto 0);
       variable sample_last : std_logic;
       
-      file data_out: text open write_mode is "C:\Users\lc599.DREXEL\Desktop\data_out" & integer'image(file_counter) & ".txt";
+      file data_out: text open write_mode is "C:\Users\lc599\Desktop\data_out" & integer'image(file_counter) & ".txt";
       constant sep: string := " ";
       variable output_line: line;
     begin
@@ -543,42 +536,19 @@ begin
   -----------------------------------------------------------------------
 
   record_outputs : process (aclk)
-    -- Function to digit-reverse an integer, to convert output to input ordering
-    function digit_reverse_int ( fwd, width : integer ) return integer is
-      variable rev     : integer;
-      variable fwd_slv : std_logic_vector(width-1 downto 0);
-      variable rev_slv : std_logic_vector(width-1 downto 0);
-    begin
-      fwd_slv := std_logic_vector(to_unsigned(fwd, width));
-      for i in 0 to width/2-1 loop  -- reverse in digit groups (2 bits at a time)
-        rev_slv(i*2+1 downto i*2) := fwd_slv(width-i*2-1 downto width-i*2-2);
-      end loop;
-      if width mod 2 = 1 then  -- width is odd: LSB moves to MSB
-        rev_slv(width-1) := fwd_slv(0);
-      end if;
-      rev := to_integer(unsigned(rev_slv));
-      return rev;
-    end function digit_reverse_int;
-
     variable index : integer := 0;
 
   begin
     if rising_edge(aclk) then
       if m_axis_data_tvalid = '1' and m_axis_data_tready = '1' then
         -- Record output data such that it can be used as input data
-        index := op_sample;
-        -- Digit-reverse output sample number, to get actual sample index as outputs are in digit-reversed order
-        index := digit_reverse_int(index, 10);
+        -- Output sample index is given by xk_index field of m_axis_data_tuser
+        index := to_integer(unsigned(m_axis_data_tuser(9 downto 0)));
         op_data(index).re <= m_axis_data_tdata(7 downto 0);
         op_data(index).im <= m_axis_data_tdata(15 downto 8);
-        -- Increment output sample counter
-        if m_axis_data_tlast = '1' then  -- end of output frame: reset sample counter and increment frame counter
-          op_sample <= 0;
+        -- Track the number of output frames
+        if m_axis_data_tlast = '1' then  -- end of output frame: increment frame counter
           op_frame <= op_frame + 1;
-          op_sample_first <= '1';  -- for next output frame
-        else
-          op_sample_first <= '0';
-          op_sample <= op_sample + 1;
         end if;
       end if;
     end if;
@@ -594,6 +564,7 @@ begin
     variable m_data_tvalid_prev : std_logic := '0';
     variable m_data_tready_prev : std_logic := '0';
     variable m_data_tdata_prev  : std_logic_vector(15 downto 0) := (others => '0');
+    variable m_data_tuser_prev  : std_logic_vector(15 downto 0) := (others => '0');
   begin
 
     -- Check outputs T_STROBE time after rising edge of clock
@@ -611,10 +582,18 @@ begin
         report "ERROR: m_axis_data_tdata is invalid when m_axis_data_tvalid is high" severity error;
         check_ok := false;
       end if;
+      if is_x(m_axis_data_tuser) then
+        report "ERROR: m_axis_data_tuser is invalid when m_axis_data_tvalid is high" severity error;
+        check_ok := false;
+      end if;
 
       if m_data_tvalid_prev = '1' and m_data_tready_prev = '0' then  -- payload must be the same as last cycle
         if m_axis_data_tdata /= m_data_tdata_prev then
           report "ERROR: m_axis_data_tdata changed while m_axis_data_tvalid was high and m_axis_data_tready was low" severity error;
+          check_ok := false;
+        end if;
+        if m_axis_data_tuser /= m_data_tuser_prev then
+          report "ERROR: m_axis_data_tuser changed while m_axis_data_tvalid was high and m_axis_data_tready was low" severity error;
           check_ok := false;
         end if;
       end if;
@@ -629,6 +608,7 @@ begin
       m_data_tvalid_prev  := m_axis_data_tvalid;
       m_data_tready_prev  := m_axis_data_tready;
       m_data_tdata_prev   := m_axis_data_tdata;
+      m_data_tuser_prev   := m_axis_data_tuser;
     end if;
 
   end process check_outputs;
@@ -648,6 +628,7 @@ begin
   -- Data master channel alias signals
   m_axis_data_tdata_re           <= m_axis_data_tdata(7 downto 0);
   m_axis_data_tdata_im           <= m_axis_data_tdata(15 downto 8);
+  m_axis_data_tuser_xk_index     <= m_axis_data_tuser(9 downto 0);
 
 end tb;
 

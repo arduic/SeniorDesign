@@ -2,7 +2,7 @@ clear;
 close all;
 clc;
 
-data_out = 'C:\\Users\\lc599.DREXEL\\Desktop\\data_out%d.txt';
+data_out = 'C:\\Users\\lc599\\Desktop\\data_out%d.txt';
 data = zeros(0,0,0);
 
 Fs = 1000;
@@ -19,9 +19,18 @@ L = size(data, 1);
 f = Fs/L*(0:(L-1));
 f2 = Fs/L*(0:(L/2));
 
+% Expected
+input_file = 'C:\Users\lc599\Desktop\data_in.txt';
+expected = dlmread(input_file);
+signal = complex(expected(:, 1), expected(:, 2));
+Y = fft(signal);
+figure;
+plot(f, abs(Y));
+title('Expected FFT output');
+
 for i=1:size(data, 3)
     output = data(:,:,i);
-    output = flipud(output);
+%     output = flipud(output);
     
     mag = sqrt(output(:, 1).^2 + output(:, 2).^2);
     p1 = mag(1:(L/2)+1);
@@ -33,8 +42,5 @@ for i=1:size(data, 3)
     figure;
     plot(f, mag, f(locs), pks, 'o');
     title(sprintf('Magnitude of output for data %d', i));
-
-%     figure;
-%     plot(f2, p1, f2(locs2), pks2, 'o');  % Single sided fft spectrum
-
+    
 end
