@@ -21,6 +21,7 @@
 
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
+use ieee.numeric_std.all;
 
 -- Uncomment the following library declaration if using
 -- arithmetic functions with Signed or Unsigned values
@@ -41,7 +42,7 @@ entity mux_buffer_connect is
   );
   Port (
     --Ports for the Mux
-    mux_selection_pins : out std_logic_vector(array_width_parent+array_height_parent-1);
+    mux_selection_pins : out std_logic_vector(array_width_parent+array_height_parent-1 downto 0);
     
     --Ports necessary for clock
     clk_in : in std_logic;  --Base clock from the Basys (assumed 100MHz)
@@ -50,6 +51,10 @@ entity mux_buffer_connect is
     
     --Ports necessary for FIFO
     buffer_reset : in std_logic;
+    buffer_adc_in : in std_logic_vector(2**mux_size_parent-1 downto 0);
+    buffer_write_enable : in std_logic; --This allows the transmitter to tell the buffer when new data is incoming, only record during those times
+    buffer_read_enable : in std_logic;  --This basically makes it so that the FFT can clock source the read seperate but still have an enable line to use
+    buffer_adc_out : out std_logic_vector(2**mux_size_parent-1 downto 0);
     clk_in_Buffer : in std_logic    --External source to signal when FFT wants to read next data point 
     
    );
@@ -72,7 +77,9 @@ architecture Behavioral of mux_buffer_connect is
     end component mux_sel;
     --Signals necessary for the mux
     signal internal_width_incrementer : std_logic_vector(array_width_parent-1 downto 0);
-    signal internal_height_incrementer : std_logic_vector(array_width_parent-1 downto 0);
+    signal internal_height_incrementer : std_logic_vector(array_height_parent-1 downto 0);
+    constant all_ones_w : std_logic_vector (array_width_parent-1 downto 0) := (others => '1');
+    constant all_ones_h : std_logic_vector (array_height_parent-1 downto 0) := (others => '1');
     
     
     --Component necessary for Clock
@@ -87,7 +94,7 @@ architecture Behavioral of mux_buffer_connect is
          );
      end component clk_wiz_0;
     --Signals necessary for clock
-     
+     signal temp_adc_clk : std_logic;
      
     --Used to store data from the ADC
     component fifo_generator_0 is
@@ -103,6 +110,8 @@ architecture Behavioral of mux_buffer_connect is
           empty : OUT STD_LOGIC
         );
     end component fifo_generator_0;
+    --Signals necessary for FIFO
+    signal buffer_write_clock : std_logic;
 
 begin
 
@@ -119,31 +128,48 @@ begin
         selection => mux_selection_pins
     );
     --processes for mux
+    --Moves the mux index around. 
+    wh_inc : process(temp_adc_clk) begin
+        if rising_edge(temp_adc_clk) then
+            if internal_width_incrementer = all_ones_w then
+                if internal_height_incrementer = all_ones_h then
+                    internal_height_incrementer <= (others => '0');
+                else
+                    internal_height_incrementer <= std_logic_vector(to_unsigned(to_integer(unsigned(internal_height_incrementer)) + 1, array_height_parent));
+                end if;
+                internal_width_incrementer <= (others => '0');
+            else
+                internal_width_incrementer <= std_logic_vector(to_unsigned(to_integer(unsigned(internal_width_incrementer)) + 1, array_width_parent));
+            end if;
+        end if;
+    end process;
     
     --Clock mapping
     clk_adc_10 : clk_wiz_0
     port map(
           clk_in1 => clk_in,
-          clk_out1 => clk_out_ADC,
+          clk_out1 => temp_adc_clk,
           reset => open,    --I don't want to ever reset or check if this clock is locked. To much work for to little benefit
           locked => open
          );
     --Clock processes
-    
+    clk_out_ADC <= temp_adc_clk;
     
     --Fifo mapping
     fifo_ADC_8x1024 : fifo_generator_0
       port map (
           rst => buffer_reset,
-          wr_clk => clk_out_ADC,    --I don't want to write at the exact same time as the mux, I want to be offset by say 1 real clock pulse (settle time of ADC specifically)... can I do that
+          wr_clk => buffer_write_clock,    --This will be delayed from the output to ADC clock, depends on the enable to time things correctly. The first reading might be 0 but eh no biggy
           rd_clk => clk_in_Buffer,
-          din =>
-          wr_en =>
-          rd_en =>
-          dout =>
-          full =>
-          empty =>
+          din => buffer_adc_in,
+          wr_en => buffer_write_enable,
+          rd_en => buffer_read_enable,
+          dout => buffer_adc_out,
+          full => open, --For now I am not going to connect these. Eventually I should probably connect full but empty is a moot point
+          empty => open
         );
+     --Fifo processes
+     buffer_write_clock <= not(temp_adc_clk);   --1/2 clock cycle success
     
 
 end Behavioral;
