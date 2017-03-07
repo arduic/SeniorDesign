@@ -4,7 +4,7 @@ clc;
 
 fft_len = 2^10;
 L = fft_len;
-Fs = 1024;
+Fs = 1000;
 ip_width = 8;
 
 t = time_from_sample_length(Fs, fft_len);
