@@ -2,13 +2,16 @@ clear;
 close all;
 clc;
 
-data_out = 'C:\\Users\\lc599\\Desktop\\data_out%d.txt';
+run('config.m');
+
+data_out_dir = [getenv('HOMEDRIVE') getenv('HOMEPATH') '\Desktop'];
 data = zeros(0,0,0);
 
 Fs = 1000;
 
 for i=0:5
-    filename = sprintf(data_out, i);
+    filename = sprintf('data_out%d.txt', i);
+    filename = fullfile(data_out_dir, filename);
     if exist(filename, 'file') == 2
         fprintf('Checking file "%s"\n', filename);
         data(:,:,end+1) = dlmread(filename);
@@ -20,8 +23,7 @@ f = Fs/L*(0:(L-1));
 f2 = Fs/L*(0:(L/2));
 
 % Expected
-input_file = 'C:\Users\lc599\Desktop\data_in.txt';
-expected = dlmread(input_file);
+expected = dlmread(input_data_path);
 signal = complex(expected(:, 1), expected(:, 2));
 Y = fft(signal);
 figure;

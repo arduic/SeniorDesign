@@ -74,6 +74,9 @@ use ieee.math_real.all;
 library std;
 use std.textio.all;
 
+library work;
+use work.config.all;
+
 entity tb_xfft_0 is
 end tb_xfft_0;
 
@@ -184,8 +187,8 @@ architecture tb of tb_xfft_0 is
   end function create_ip_table;
   
   
-  function create_ip_table_from_file return T_IP_TABLE is
-    file data_in: text open read_mode is "C:\Users\lc599\Desktop\data_in.txt";
+  impure function create_ip_table_from_file return T_IP_TABLE is
+    file data_in: text open read_mode is input_file;
     variable input_line: line;
     variable tre, tim: integer;
     
@@ -200,6 +203,32 @@ architecture tb of tb_xfft_0 is
         result(i).im := std_logic_vector(to_signed(tim, IP_WIDTH));
     end loop;
     return result;
+  end function;
+    
+  impure function record_master_output(data: T_IP_TABLE; idx: integer) return integer is
+      file data_out: text open write_mode is "C:\Users\lc599.DREXEL.000\Desktop\data_out" & integer'image(idx) & ".txt";
+      constant sep: string := " ";
+      variable output_line: line;
+      
+      variable samples : integer;
+      variable index   : integer;
+      variable re, im: std_logic_vector(ip_width-1 downto 0);
+  begin
+      samples := data'length;
+      index  := 0;
+      while index < data'length loop
+        -- Look up sample data in data table, construct TDATA value
+        re := data(index).re;
+        im := data(index).im;
+        -- Construct TLAST's value
+        index := index + 1;
+        
+        write(output_line, integer'image(to_integer(signed(re))));
+        write(output_line, sep);
+        write(output_line, integer'image(to_integer(signed(im))));
+        writeline(data_out, output_line);
+      end loop;
+      return 0;
   end function;
 
   -- Call the function to create the input data
@@ -222,8 +251,6 @@ architecture tb of tb_xfft_0 is
   signal ip_frame        : integer    := 0;    -- input / configuration frame number
   signal op_data         : T_IP_TABLE := IP_TABLE_CLEAR;  -- recorded output data
   signal op_frame        : integer    := 0;    -- output frame number (incremented at end of frame output)
-
-  signal file_counter: integer := 0;
 
 begin
 
@@ -321,10 +348,6 @@ begin
       variable index   : integer;
       variable sample_data : std_logic_vector(15 downto 0);
       variable sample_last : std_logic;
-      
-      file data_out: text open write_mode is "C:\Users\lc599\Desktop\data_out" & integer'image(file_counter) & ".txt";
-      constant sep: string := " ";
-      variable output_line: line;
     begin
       samples := data'length;
       index  := 0;
@@ -339,16 +362,9 @@ begin
         else
           sample_last := '0';
         end if;
-        
-        write(output_line, integer'image(to_integer(signed(sample_data(IP_WIDTH-1 downto 0)))));
-        write(output_line, sep);
-        write(output_line, integer'image(to_integer(signed(sample_data(2*IP_WIDTH-1 downto IP_WIDTH)))));
-        writeline(data_out, output_line);
-        
         -- Drive the sample
         drive_sample(sample_data, sample_last, valid_mode);
       end loop;
-      file_counter <= file_counter + 1;
     end procedure drive_frame;
 
     variable op_data_saved : T_IP_TABLE;  -- to save a copy of recorded output data
@@ -537,7 +553,7 @@ begin
 
   record_outputs : process (aclk)
     variable index : integer := 0;
-
+    variable tmp: integer;
   begin
     if rising_edge(aclk) then
       if m_axis_data_tvalid = '1' and m_axis_data_tready = '1' then
@@ -549,6 +565,7 @@ begin
         -- Track the number of output frames
         if m_axis_data_tlast = '1' then  -- end of output frame: increment frame counter
           op_frame <= op_frame + 1;
+          tmp := record_master_output(op_data, op_frame);  -- I do not know how to declare a void func in vhdl
         end if;
       end if;
     end if;
