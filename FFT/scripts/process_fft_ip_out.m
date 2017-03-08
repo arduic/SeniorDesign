@@ -32,7 +32,6 @@ title('Expected FFT output');
 
 for i=1:size(data, 3)
     output = data(:,:,i);
-%     output = flipud(output);
     
     mag = sqrt(output(:, 1).^2 + output(:, 2).^2);
     p1 = mag(1:(L/2)+1);
