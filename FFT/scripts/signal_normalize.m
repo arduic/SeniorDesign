@@ -4,4 +4,7 @@ function [re, im]=signal_normalize(signal, dest_mag)
     norm_signal = signal/max(abs(signal)) * dest_mag;
     re = real(norm_signal);
     im = imag(norm_signal);
+    
+    re(isnan(re)) = 0;
+    im(isnan(im)) = 0;
 end

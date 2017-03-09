@@ -42,6 +42,8 @@ for i=1:size(data, 3)
     
     figure;
     plot(f, mag, f(locs), pks, 'o');
+%     semilogx(f, mag, f(locs), pks, 'o');
     title(sprintf('Magnitude of output for data %d', i));
-    
+    ylabel('Magnitude');
+    xlabel('Frequency (Hz)');
 end
