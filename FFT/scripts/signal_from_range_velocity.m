@@ -3,12 +3,13 @@ close all;
 clc;
 
 % R = 3000; vr = 0;  % far, stationary
-%R = 500; vr = convvel(100, 'mph', 'm/s');  % close, fast towards
+R = 500; vr = convvel(100, 'mph', 'm/s');  % close, fast towards
 % R = 500; vr = convvel(-100, 'mph', 'm/s');  % close, fast away
 
-c = 2*10^8;  % speed of light
+c = 3*10^8;  % speed of light
+Tm = 10^-6;
 df = 10^6;  % beat (delata freq)
-fm = 10^6;  % modulation rate (period)
+fm = 1/Tm;  % modulation rate (period)
 f0 = 80*10^9;  % Starting freqency
 % f0 = 3.3*10^9;
 
@@ -27,20 +28,23 @@ elseif vr < 0
     assert(fb_up > fb_down);
 end
 
-% Generate the signal at this frequency
-% Fs = 20*10^6;
-% Ts = 1/Fs;
-% t = 0:Ts:10^-6;
-% L = length(t);
-% 
-% f_signal = max(fb_up, fb_down)
-% signal = sin(2*pi*max(f_signal)*t);
-% 
-% figure;
-% plot(t, signal);
-% 
-% f = Fs/L*(0:L-1);
-% y = fft(signal);
-% 
-% figure;
-% plot(f, abs(y));
+% Create signal
+Fs = 10^9;
+delay = Tm/10;
+t1 = 0:1/Fs:(Tm-delay);
+t2 = (Tm-delay):1/Fs:Tm;
+signal1 = sin(2*pi*fb_up*t1);
+signal2 = sin(2*pi*fb_down*t2);
+signal = [signal1 signal2];
+t = [t1 t2];
+L = length(t);
+
+figure;
+plot(t, signal);
+
+% FFT
+Y = fft(signal);
+f = Fs/L*(0:(L-1));
+
+figure;
+semilogx(f, abs(Y));
