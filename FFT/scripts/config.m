@@ -26,7 +26,7 @@ fft_config_path = [getenv('HOMEDRIVE') getenv('HOMEPATH') '\' project_name '\' .
 
 %% FFT Settings
 % Modify the length of the FFT in the line below
-log2fftlen = 13;
+log2fftlen = 10;
 fftlen = 2^log2fftlen;  % Transform length/point size
 
 % Increase this to support signals with larger amplitudes
