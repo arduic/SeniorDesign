@@ -5,11 +5,13 @@ clc;
 % R = 3000; vr = 0;  % far, stationary
 R = 500; vr = convvel(100, 'mph', 'm/s');  % close, fast towards
 % R = 500; vr = convvel(-100, 'mph', 'm/s');  % close, fast away
+% R = 3000; vr = convvel(-100, 'mph', 'm/s');
 
-c = 3*10^8;  % speed of light
+c = 2*10^8;  % speed of light
 Tm = 10^-6;
 df = 10^6;  % beat (delata freq)
-fm = 1/Tm;  % modulation rate (period)
+% fm = 1/Tm;  % modulation rate (period)
+fm = 1000;
 f0 = 80*10^9;  % Starting freqency
 % f0 = 3.3*10^9;
 
@@ -29,8 +31,8 @@ elseif vr < 0
 end
 
 % Create signal
-Fs = 10^9;
-delay = Tm/10;
+Fs = 10^7;
+delay = Tm/6;
 t1 = 0:1/Fs:(Tm-delay);
 t2 = (Tm-delay):1/Fs:Tm;
 signal1 = sin(2*pi*fb_up*t1);
@@ -47,4 +49,5 @@ Y = fft(signal);
 f = Fs/L*(0:(L-1));
 
 figure;
-semilogx(f, abs(Y));
+% semilogx(f, abs(Y));
+plot(f, abs(Y));
