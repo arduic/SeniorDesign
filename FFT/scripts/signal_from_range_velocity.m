@@ -8,21 +8,22 @@ R = 500; vr = convvel(100, 'mph', 'm/s');  % close, fast towards
 % R = 3000; vr = convvel(-100, 'mph', 'm/s');
 
 
-
-Fs = 10^6;
 Tm = 10^-3;
 c = 3*10^8;  % speed of light
 df = 10^6;  % beat (delata freq)
 fm = 1/Tm;  % modulation rate (period)
 f0 = 80*10^9;  % Starting freqency
-% f0 = 3.3*10^9;
+L = 1024;  % FFT length
+Fs = 1/(Tm/L);  % L points from 0 to Tm
 
 fR = R*4*fm*df/c
 fd = vr*2*f0/c
 
 % Moving toward
-fb_up = abs(fR - fd)
-fb_down = abs(fR + fd)
+% fb_up = abs(fR - fd)
+% fb_down = abs(fR + fd)
+fb_up = fR-fd
+fb_down = fR+fd
 
 % fb_up should be less than fb_down when moving
 % towards radar
@@ -33,14 +34,14 @@ elseif vr < 0
 end
 
 % Create signal
-delay = Tm/6;
-t1 = 0:1/Fs:(Tm-delay);
-t2 = (Tm-delay):1/Fs:Tm;
+t = (0:(L-1))/L*Tm;
+delay_ratio = 1/5;
+cutoff = floor(L*(1-delay_ratio));
+t1 = t(1:cutoff);
+t2 = t(cutoff+1:end);
 signal1 = sin(2*pi*fb_up*t1);
 signal2 = sin(2*pi*fb_down*t2);
 signal = [signal1 signal2];
-t = [t1 t2];
-L = length(t);
 
 figure;
 plot(t, signal);
@@ -48,8 +49,16 @@ plot(t, signal);
 % FFT
 Y = fft(signal);
 f = Fs/L*(0:(L-1));
+mag = abs(Y);
+lim = mean(mag);
+
+[pks, locs] = findpeaks(mag, 'MinPeakHeight', lim, 'NPeaks', 4, 'SortStr', 'descend');
 
 figure;
-% semilogx(f, abs(Y));
 semilogy(f, abs(Y));
-% plot(f, abs(Y));
+
+figure;
+plot(f, abs(Y), f(locs), pks, 'o');
+refline(0, mean(abs(Y)));
+
+fprintf('Pk @ %g Hz\n', f(locs));
