@@ -62,3 +62,19 @@ plot(f, abs(Y), f(locs), pks, 'o');
 refline(0, mean(abs(Y)));
 
 fprintf('Pk @ %g Hz\n', f(locs));
+
+%% FFT windowing
+partitions = 4;
+fft_size = L/partitions;
+fft_results = fft_window2(signal, L/partitions);
+dominant_freqs = zeros(1, partitions);
+f2 = (0:(fft_size/2)-1)*Fs/fft_size;
+for i=1:size(fft_results, 1)
+    % Keep only first half of data where f < fs/2
+    data = fft_results(i, 1:(fft_size/2));
+    mag = abs(data);
+    
+    [Y,I] = max(mag);
+    max_freq = f2(I);
+    dominant_freqs(i) = max_freq;
+end
