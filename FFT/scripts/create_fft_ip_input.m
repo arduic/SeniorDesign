@@ -5,9 +5,9 @@ clc;
 run('config.m');
 run('create_config.m');
 
-L = fftlen;
+L = fftlen*windows;
 
-t = time_from_sample_length(Fs, fftlen);
+t = time_from_sample_length(Fs, L);
 
 % signal = exp(1i*2*pi*10*t) + exp(1i*2*pi*30*t)/4;  % good
 % signal = sin(2*pi*20*t) + sin(2*pi*60*t)/4;  % good
@@ -23,15 +23,15 @@ figure;
 plot(f, abs(Y));
 title('Expected FFT output');
 
-figure;
-plot(t, abs(signal));
-title('Magnitude of input signal');
-figure;
-plot(t, real(signal));
-title('Real part of input signal');
-figure;
-plot(t, imag(signal));
-title('Imaginary part of input signal');
+% figure;
+% plot(t, abs(signal));
+% title('Magnitude of input signal');
+% figure;
+% plot(t, real(signal));
+% title('Real part of input signal');
+% figure;
+% plot(t, imag(signal));
+% title('Imaginary part of input signal');
 
 % Scale input to IP_WIDTH
 [re, im] = signal_normalize(signal, 2^(ip_width-1)-1);
@@ -43,15 +43,15 @@ assert(min(re) >= -2^(ip_width-1));
 assert(max(im) < 2^(ip_width-1));
 assert(min(im) >= -2^(ip_width-1));
 
-figure;
-plot(t, sqrt(re.^2 + im.^2));
-title('Magnitude of normalized input signal');
-figure;
-plot(t, re);
-title('Real part of normalized input signal');
-figure;
-plot(t, im);
-title('Imaginary part of normalized input signal');
+% figure;
+% plot(t, sqrt(re.^2 + im.^2));
+% title('Magnitude of normalized input signal');
+% figure;
+% plot(t, re);
+% title('Real part of normalized input signal');
+% figure;
+% plot(t, im);
+% title('Imaginary part of normalized input signal');
 
 % Write to file
 data = [re' im'];

@@ -72,6 +72,8 @@ architecture Behavioral of fft_tb is
     signal m_axis_data_tdata_re             : std_logic_vector(7 downto 0) := (others => '0');  -- real data
     signal m_axis_data_tdata_im             : std_logic_vector(7 downto 0) := (others => '0');  -- imaginary data
     signal m_axis_data_tuser_xk_index       : std_logic_vector(9 downto 0) := (others => '0');  -- sample index
+    
+    file data_in: text open read_mode is input_file;
 
     -----------------------------------------------------------------------
     -- Constants, types and functions to create input data
@@ -90,8 +92,7 @@ architecture Behavioral of fft_tb is
                                                       im => (others => '0')));
 
     -- Function to read in an input signal from a text file specified in config.vhd
-    function create_ip_table_from_file return T_IP_TABLE is
-        file data_in: text open read_mode is input_file;
+    impure function create_ip_table_from_file return T_IP_TABLE is
         variable input_line: line;
         variable tre, tim: integer;
         
@@ -107,11 +108,17 @@ architecture Behavioral of fft_tb is
         end loop;
         return result;
     end function;
+    
+    impure function clear_output_file(dest_file: string) return integer is
+        file data_out: text open write_mode is dest_file;
+    begin
+        return 0;
+    end function;
 
     -- Function to record output to a file
     -- Return type should be void, but I don't know how to make a void function in vhdl
-    function record_master_output(data: T_IP_TABLE; dest_file: string) return integer is
-        file data_out: text open write_mode is dest_file;
+    impure function record_master_output(data: T_IP_TABLE; dest_file: string) return integer is
+        file data_out: text open append_mode is dest_file;
         constant sep: string := " ";
         variable output_line: line;
         
@@ -137,7 +144,8 @@ architecture Behavioral of fft_tb is
     end function;
     
     -- Create the input data
-    constant IP_DATA: T_IP_TABLE := create_ip_table_from_file;
+--    constant IP_DATA: T_IP_TABLE := create_ip_table_from_file;
+    signal IP_DATA: T_IP_TABLE := IP_TABLE_CLEAR;
 
     -----------------------------------------------------------------------
     -- Testbench signals
@@ -270,22 +278,40 @@ begin
       end procedure drive_frame;
   
       variable op_data_saved : T_IP_TABLE;  -- to save a copy of recorded output data
-  
+      variable dummy: integer;
   
     begin
+      dummy := clear_output_file(output_file);
+      
+      while not endfile(data_in) loop
+          -- Drive inputs T_HOLD time after rising edge of clock
+          IP_DATA <= create_ip_table_from_file;
+          
+          wait until rising_edge(aclk);
+          wait for T_HOLD;
+      
+          -- Drive a frame of input data
+          ip_frame <= 1;
+          drive_frame(IP_DATA);
+      
+          -- Allow the result to emerge
+          wait until m_axis_data_tlast = '1';
+          wait until rising_edge(aclk);
+          wait for T_HOLD;
+      end loop;
   
-      -- Drive inputs T_HOLD time after rising edge of clock
-      wait until rising_edge(aclk);
-      wait for T_HOLD;
+--      -- Drive inputs T_HOLD time after rising edge of clock
+--      wait until rising_edge(aclk);
+--      wait for T_HOLD;
   
-      -- Drive a frame of input data
-      ip_frame <= 1;
-      drive_frame(IP_DATA);
+--      -- Drive a frame of input data
+--      ip_frame <= 1;
+--      drive_frame(IP_DATA);
   
-      -- Allow the result to emerge
-      wait until m_axis_data_tlast = '1';
-      wait until rising_edge(aclk);
-      wait for T_HOLD;
+--      -- Allow the result to emerge
+--      wait until m_axis_data_tlast = '1';
+--      wait until rising_edge(aclk);
+--      wait for T_HOLD;
   
       -- End of test
       report "Not a real failure. Simulation finished successfully. Test completed successfully" severity failure;
@@ -367,7 +393,7 @@ begin
         -- Track the number of output frames
         if m_axis_data_tlast = '1' then  -- end of output frame: increment frame counter
           op_frame <= op_frame + 1;
-          tmp := record_master_output(op_data, "C:\Users\lc599.DREXEL.000\Desktop\data_out" & integer'image(op_frame) & ".txt");  -- I do not know how to declare a void func in vhdl
+          tmp := record_master_output(op_data, output_file);  -- I do not know how to declare a void func in vhdl
         end if;
       end if;
     end if;
