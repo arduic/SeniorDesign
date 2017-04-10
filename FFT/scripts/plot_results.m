@@ -28,4 +28,5 @@ p1(2:end-1) = 2*p1(2:end-1);
 
 figure;
 plot(f, mag, f(locs), pks, 'o');
+% plot(f, mag);
 title('Single Sided FFT Spectrum');

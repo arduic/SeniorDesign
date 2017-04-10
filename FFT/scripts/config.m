@@ -24,7 +24,7 @@ fft_config_path = 'C:\Users\lc599\FFT_impl\FFT_impl.srcs\sources_1\imports\sourc
 
 %% FFT Settings
 % Modify the length of the FFT in the line below
-log2fftlen = 10;
+log2fftlen = 12;
 fftlen = 2^log2fftlen;  % Transform length/point size
 
 % Increase this to support signals with larger amplitudes

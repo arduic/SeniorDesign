@@ -28,7 +28,8 @@ t = time_from_sample_length(Fs, len_of_data);
 
 %signal = sum_of_sins(Fs, t);
 %signal = single_pulse(t, 1/100);
-signal = fft_modulated_pulse(t, 1/100, 20*10^9);
+%signal = fft_modulated_pulse(t, 1/100, 20*10^9);
+signal = chirp_signal(t, 10^9, 2*10^10);
 
 re = real(signal);
 im = imag(signal);
