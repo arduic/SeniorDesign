@@ -87,9 +87,12 @@ architecture Behavioral of fft_tb is
     end record;
     type T_IP_TABLE is array (0 to MAX_SAMPLES-1) of T_IP_SAMPLE;
     
+    type T_MAG_TABLE is array (0 to MAX_SAMPLES-1) of integer;
+    
     -- Zeroed input data table, for reset and initialization
     constant IP_TABLE_CLEAR : T_IP_TABLE := (others => (re => (others => '0'),
                                                       im => (others => '0')));
+    constant MAG_TABLE_CLEAR: T_MAG_TABLE := (others => 0);
 
     -- Function to read in an input signal from a text file specified in config.vhd
     impure function create_ip_table_from_file return T_IP_TABLE is
@@ -117,6 +120,7 @@ architecture Behavioral of fft_tb is
 
     -- Function to record output to a file
     -- Return type should be void, but I don't know how to make a void function in vhdl
+    -- mag = sqrt(actual(start:end_, 1).^2 + actual(start:end_, 2).^2);
     impure function record_master_output(data: T_IP_TABLE; dest_file: string) return integer is
         file data_out: text open append_mode is dest_file;
         constant sep: string := " ";
@@ -132,6 +136,7 @@ architecture Behavioral of fft_tb is
             -- Look up sample data in data table, construct TDATA value
             re := data(index).re;
             im := data(index).im;
+            
             -- Construct TLAST's value
             index := index + 1;
             
@@ -146,6 +151,7 @@ architecture Behavioral of fft_tb is
     -- Create the input data
 --    constant IP_DATA: T_IP_TABLE := create_ip_table_from_file;
     signal IP_DATA: T_IP_TABLE := IP_TABLE_CLEAR;
+    signal MAG_DATA: T_MAG_TABLE := MAG_TABLE_CLEAR;
 
     -----------------------------------------------------------------------
     -- Testbench signals
@@ -300,19 +306,6 @@ begin
           wait for T_HOLD;
       end loop;
   
---      -- Drive inputs T_HOLD time after rising edge of clock
---      wait until rising_edge(aclk);
---      wait for T_HOLD;
-  
---      -- Drive a frame of input data
---      ip_frame <= 1;
---      drive_frame(IP_DATA);
-  
---      -- Allow the result to emerge
---      wait until m_axis_data_tlast = '1';
---      wait until rising_edge(aclk);
---      wait for T_HOLD;
-  
       -- End of test
       report "Not a real failure. Simulation finished successfully. Test completed successfully" severity failure;
       wait;
@@ -381,19 +374,29 @@ begin
 
   record_outputs : process (aclk)
     variable index : integer := 0;
-    variable tmp: integer;
+    variable re_v, im_v: std_logic_vector(ip_width-1 downto 0);
+    variable re_i, im_i: integer;
+    variable dummy: integer;
   begin
     if rising_edge(aclk) then
       if m_axis_data_tvalid = '1' and m_axis_data_tready = '1' then
         -- Record output data such that it can be used as input data
         -- Output sample index is given by xk_index field of m_axis_data_tuser
         index := to_integer(unsigned(m_axis_data_tuser(9 downto 0)));
-        op_data(index).re <= m_axis_data_tdata(7 downto 0);
-        op_data(index).im <= m_axis_data_tdata(15 downto 8);
+        
+        re_v := m_axis_data_tdata(7 downto 0);
+        im_v := m_axis_data_tdata(15 downto 8);
+        re_i := to_integer(signed(re_v));
+        im_i := to_integer(signed(im_v));
+        
+        mag_data(index) <= re_i*re_i + im_i*im_i;
+        
+        op_data(index).re <= re_v;
+        op_data(index).im <= im_v;
         -- Track the number of output frames
         if m_axis_data_tlast = '1' then  -- end of output frame: increment frame counter
           op_frame <= op_frame + 1;
-          tmp := record_master_output(op_data, output_file);  -- I do not know how to declare a void func in vhdl
+          dummy := record_master_output(op_data, output_file);  -- I do not know how to declare a void func in vhdl
         end if;
       end if;
     end if;

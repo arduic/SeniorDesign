@@ -30,9 +30,7 @@ for i=1:windows
     ylabel('Magnitude');
 
     mag = sqrt(actual(start:end_, 1).^2 + actual(start:end_, 2).^2);
-    p1 = mag(1:(L/2)+1);
-    p1(2:end-1) = 2*p1(2:end-1);
-
+    
     figure;
     plot(f, mag);
     % semilogx(f, mag);

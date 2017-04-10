@@ -10,8 +10,8 @@ L = fftlen*windows;
 t = time_from_sample_length(Fs, L);
 
 % signal = exp(1i*2*pi*10*t) + exp(1i*2*pi*30*t)/4;  % good
-% signal = sin(2*pi*20*t) + sin(2*pi*60*t)/4;  % good
-signal = chirp(t, 10, t(end), 100);  % good
+signal = sin(2*pi*20*t) + sin(2*pi*60*t)/4;  % good
+% signal = chirp(t, 10, t(end), 100);  % good
 % signal = single_pulse(t, 1/1000);  % bad
 % signal = single_pulse(t, 1/10);  % good
 % signal = fft_modulated_pulse(t, 1/1000, 100);  % bad
