@@ -152,6 +152,9 @@ architecture Behavioral of fft_tb is
 --    constant IP_DATA: T_IP_TABLE := create_ip_table_from_file;
     signal IP_DATA: T_IP_TABLE := IP_TABLE_CLEAR;
     signal MAG_DATA: T_MAG_TABLE := MAG_TABLE_CLEAR;
+    signal max_mag: integer := 0;
+    signal max_mag_i: integer := 0;
+    signal max_freq: integer := 0;
 
     -----------------------------------------------------------------------
     -- Testbench signals
@@ -171,6 +174,8 @@ architecture Behavioral of fft_tb is
     signal op_frame        : integer    := 0;    -- output frame number (incremented at end of frame output)
 
 begin
+
+    max_freq <= FREQ_SPEC(max_mag_i);
 
     -----------------------------------------------------------------------
     -- Instantiate the DUT
@@ -375,7 +380,7 @@ begin
   record_outputs : process (aclk)
     variable index : integer := 0;
     variable re_v, im_v: std_logic_vector(ip_width-1 downto 0);
-    variable re_i, im_i: integer;
+    variable re_i, im_i, mag: integer;
     variable dummy: integer;
   begin
     if rising_edge(aclk) then
@@ -389,7 +394,12 @@ begin
         re_i := to_integer(signed(re_v));
         im_i := to_integer(signed(im_v));
         
-        mag_data(index) <= re_i*re_i + im_i*im_i;
+        mag := re_i*re_i + im_i*im_i;
+        mag_data(index) <= mag;
+        if mag > max_mag then
+            max_mag <= mag;
+            max_mag_i <= index;
+        end if;
         
         op_data(index).re <= re_v;
         op_data(index).im <= im_v;

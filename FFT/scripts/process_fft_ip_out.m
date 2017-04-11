@@ -12,12 +12,12 @@ run('config.m');
 actual = dlmread(output_data_path);
 expected = dlmread(input_data_path);
 
+L = fftlen;
+f = Fs/L*(0:(L-1));
+
 for i=1:windows
     start = (i-1)*fftlen + 1;
     end_ = i*fftlen;
-    
-    L = fftlen;
-    f = Fs/L*(0:(L-1));
 
     % Expected
     signal = complex(expected(start:end_, 1), expected(start:end_, 2));
@@ -37,4 +37,7 @@ for i=1:windows
     ylabel('Magnitude');
     xlabel('Frequency (Hz)');
     title(sprintf('Actual %s pt. %d', name, i));
+    
+    [V,I] = max(mag)
+    f(I)
 end
