@@ -30,6 +30,7 @@ for i=1:windows
     ylabel('Magnitude');
 
     mag = sqrt(actual(start:end_, 1).^2 + actual(start:end_, 2).^2);
+    mag_half = mag(1:end/2);
     
     figure;
     plot(f, mag);
@@ -38,6 +39,6 @@ for i=1:windows
     xlabel('Frequency (Hz)');
     title(sprintf('Actual %s pt. %d', name, i));
     
-    [V,I] = max(mag)
+    [V,I] = max(mag_half)
     f(I)
 end

@@ -4,7 +4,10 @@ fprintf(fo,'constant INPUT_FILE: string := "%s";\n', input_data_path);
 fprintf(fo,'constant OUTPUT_FILE: string := "%s";\n', output_data_path);
 fprintf(fo,'constant FS: integer := %d;\n', Fs);
 fprintf(fo,'constant FFTLEN: integer := %d;\n', fftlen);
+fprintf(fo,'constant FFTLEN_CUTOFF: integer := FFTLEN/2;\n');
 fprintf(fo,'constant WINDOWS: integer := %d;\n', windows);
+fprintf(fo,'constant FS: integer := %d;\n', Fs);
+
 
 % Types
 fprintf(fo,'type FREQ_SPEC_T is array(0 to FFTLEN-1) of integer;\n');

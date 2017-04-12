@@ -157,6 +157,8 @@ architecture Behavioral of fft_tb is
     
     signal freq_buff: freq_buff_t := (others => 0);
     signal window_count: integer range 0 to windows-1 := 0;
+    signal fb_up, fb_down, fr, fd: integer := 0;
+    signal r, vr: integer := 0;
 
     -----------------------------------------------------------------------
     -- Testbench signals
@@ -179,7 +181,10 @@ begin
 
     max_freq <= FREQ_SPEC(max_mag_i);
     freq_buff(window_count) <= max_freq;
-
+    fb_up <= freq_buff(0);
+    fb_down <= freq_buff(fftlen-1);
+    fr <= (fb_up+fb_down)/2;
+    fd = (fb_down-fb_up)/2;
     -----------------------------------------------------------------------
     -- Instantiate the DUT
     -----------------------------------------------------------------------
@@ -399,7 +404,7 @@ begin
         
         mag := re_i*re_i + im_i*im_i;
         mag_data(index) <= mag;
-        if mag > max_mag then
+        if mag > max_mag and index < fftlen_cutoff then
             max_mag <= mag;
             max_mag_i <= index;
         end if;
