@@ -149,12 +149,14 @@ architecture Behavioral of fft_tb is
     end function;
     
     -- Create the input data
---    constant IP_DATA: T_IP_TABLE := create_ip_table_from_file;
     signal IP_DATA: T_IP_TABLE := IP_TABLE_CLEAR;
     signal MAG_DATA: T_MAG_TABLE := MAG_TABLE_CLEAR;
     signal max_mag: integer := 0;
     signal max_mag_i: integer := 0;
     signal max_freq: integer := 0;
+    
+    signal freq_buff: freq_buff_t := (others => 0);
+    signal window_count: integer range 0 to windows-1 := 0;
 
     -----------------------------------------------------------------------
     -- Testbench signals
@@ -176,6 +178,7 @@ architecture Behavioral of fft_tb is
 begin
 
     max_freq <= FREQ_SPEC(max_mag_i);
+    freq_buff(window_count) <= max_freq;
 
     -----------------------------------------------------------------------
     -- Instantiate the DUT
@@ -407,6 +410,7 @@ begin
         if m_axis_data_tlast = '1' then  -- end of output frame: increment frame counter
           op_frame <= op_frame + 1;
           dummy := record_master_output(op_data, output_file);  -- I do not know how to declare a void func in vhdl
+          window_count <= window_count + 1;
         end if;
       end if;
     end if;
