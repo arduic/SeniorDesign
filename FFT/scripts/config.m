@@ -37,4 +37,4 @@ ip_width = 8;
 
 % Sampling frequency
 Fs = 1000;  % Hz
-windows = 2;
+windows = 4;
