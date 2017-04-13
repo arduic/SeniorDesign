@@ -6,8 +6,10 @@ fprintf(fo,'constant FS: integer := %d;\n', Fs);
 fprintf(fo,'constant FFTLEN: integer := %d;\n', fftlen);
 fprintf(fo,'constant FFTLEN_CUTOFF: integer := FFTLEN/2;\n');
 fprintf(fo,'constant WINDOWS: integer := %d;\n', windows);
-fprintf(fo,'constant FS: integer := %d;\n', Fs);
-
+fprintf(fo,'constant c: integer := 3*(10**8);\n');
+fprintf(fo,'constant df: integer := 10**6;\n');
+fprintf(fo,'constant fm: integer := 10**3;\n');
+% fprintf(fo,'constant f0: integer := 80*(10**9);\n');
 
 % Types
 fprintf(fo,'type FREQ_SPEC_T is array(0 to FFTLEN-1) of integer;\n');

@@ -45,6 +45,8 @@ signal = [signal1 signal2];
 
 figure;
 plot(t, signal);
+title('Input Signal');
+xlabel('Time (s)');
 
 % FFT
 Y = fft(signal);
@@ -66,7 +68,7 @@ fprintf('Pk @ %g Hz\n', f(locs));
 %% FFT windowing
 partitions = 4;
 fft_size = L/partitions;
-fft_results = fft_window2(signal, L/partitions);
+fft_results = fft_window2(signal, fft_size);
 dominant_freqs = zeros(1, partitions);
 f2 = (0:(fft_size/2)-1)*Fs/fft_size;
 for i=1:size(fft_results, 1)
@@ -74,7 +76,14 @@ for i=1:size(fft_results, 1)
     data = fft_results(i, 1:(fft_size/2));
     mag = abs(data);
     
+    figure;
+    plot(f2, mag);
+    title(sprintf('FFT for Partition %d', i));
+    xlabel('Frequency');
+    
     [Y,I] = max(mag);
     max_freq = f2(I);
     dominant_freqs(i) = max_freq;
 end
+
+dominant_freqs

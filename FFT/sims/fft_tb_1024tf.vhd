@@ -182,9 +182,15 @@ begin
     max_freq <= FREQ_SPEC(max_mag_i);
     freq_buff(window_count) <= max_freq;
     fb_up <= freq_buff(0);
-    fb_down <= freq_buff(fftlen-1);
+    fb_down <= freq_buff(windows-1);
     fr <= (fb_up+fb_down)/2;
-    fd = (fb_down-fb_up)/2;
+    fd <= (fb_down-fb_up)/2;
+--    r <= c*fr/(4*fm*df);
+    r <= fr/13;
+--    vr <= c*fd/(2*f0);
+    vr <= fd/533;
+    
+    
     -----------------------------------------------------------------------
     -- Instantiate the DUT
     -----------------------------------------------------------------------
