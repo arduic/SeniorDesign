@@ -87,3 +87,4 @@ for i=1:size(fft_results, 1)
 end
 
 dominant_freqs
+save('close_fast_towards.mat', 'signal');
