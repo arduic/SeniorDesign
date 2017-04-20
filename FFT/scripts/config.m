@@ -36,6 +36,6 @@ fftlen = 2^log2fftlen;  % Transform length/point size
 ip_width = 8;
 
 % Sampling frequency
-Fs = 1000;  % Hz
-% Fs = 4096000;
+% Fs = 1000;  % Hz
+Fs = 10240000;
 windows = 4;

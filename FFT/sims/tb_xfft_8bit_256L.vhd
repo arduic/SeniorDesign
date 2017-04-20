@@ -169,17 +169,29 @@ architecture tb of tb_xfft_8bit_256L is
   signal op_data         : T_IP_TABLE := IP_TABLE_CLEAR;  -- recorded output data
   signal op_frame        : integer    := 0;    -- output frame number (incremented at end of frame output)
 
+    function mag_data_max(data: T_MAG_TABLE) return integer is
+        variable max_val: integer := 0;
+        variable max_idx: integer := 0;
+    begin
+        for i in 0 to FFTLEN_CUTOFF-1 loop
+            if data(i) > max_val then
+                max_val := data(i);
+                max_idx := i;
+            end if;
+        end loop;
+        return max_idx;
+    end function;
 
 begin
 
     max_freq <= FREQ_SPEC(max_mag_i);
-    freq_buff(window_count) <= max_freq;
+--    freq_buff(window_count) <= max_freq;
     fb_up <= freq_buff(0);
     fb_down <= freq_buff(windows-1);
     fr <= (fb_up+fb_down)/2;
     fd <= (fb_down-fb_up)/2;
 --    r <= c*fr/(4*fm*df);
-    r <= fr/13;
+    r <= fr/133;
 --    vr <= c*fd/(2*f0);
     vr <= fd/533;
 
@@ -403,10 +415,12 @@ begin
         
         mag := re_i*re_i + im_i*im_i;
         mag_data(index) <= mag;
-        if mag > max_mag and index < fftlen_cutoff then
-            max_mag <= mag;
-            max_mag_i <= index;
-        end if;
+--        if mag > max_mag and index < fftlen_cutoff then
+--            max_mag <= mag;
+--            max_mag_i <= index;
+--        end if;
+        max_mag_i <= mag_data_max(mag_data);
+        max_mag <= mag_data(max_mag_i);
         
         op_data(index).re <= re_v;
         op_data(index).im <= im_v;
@@ -414,7 +428,12 @@ begin
         if m_axis_data_tlast = '1' then  -- end of output frame: increment frame counter
           op_frame <= op_frame + 1;
           dummy := record_master_output(op_data, output_file);  -- I do not know how to declare a void func in vhdl
+          freq_buff(window_count) <= max_freq;
           window_count <= (window_count + 1) mod windows;
+          
+--          mag_data <= MAG_TABLE_CLEAR;
+--          max_mag <= 0;
+--          max_mag_i <= 0;
         end if;
       end if;
     end if;

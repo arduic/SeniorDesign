@@ -3,12 +3,12 @@ close all;
 clc;
 
 % R = 3000; vr = 0;  % far, stationary
-R = 500; vr = convvel(100, 'mph', 'm/s');  % close, fast towards
-% R = 500; vr = convvel(-100, 'mph', 'm/s');  % close, fast away
+% R = 500; vr = convvel(100, 'mph', 'm/s');  % close, fast towards
+R = 500; vr = convvel(-100, 'mph', 'm/s');  % close, fast away
 % R = 3000; vr = convvel(-100, 'mph', 'm/s');
 
 
-Tm = 10^-3;
+Tm = 10^-4;
 c = 3*10^8;  % speed of light
 df = 10^6;  % beat (delata freq)
 fm = 1/Tm;  % modulation rate (period)
@@ -18,6 +18,8 @@ Fs = 1/(Tm/L);  % L points from 0 to Tm
 
 fR = R*4*fm*df/c
 fd = vr*2*f0/c
+
+assert(fR > fd);
 
 % Moving toward
 % fb_up = abs(fR - fd)
@@ -88,3 +90,12 @@ end
 
 dominant_freqs
 save('close_fast_towards.mat', 'signal');
+
+fb_up_actual = dominant_freqs(1)
+fb_down_actual = dominant_freqs(end)
+fr_actual = (fb_up_actual + fb_down_actual)/2
+fd_actual = (fb_down_actual - fb_up_actual)/2
+k1 = c/(4*fm*df);
+k2 = c/(2*f0);
+r = k1*fr_actual
+vel = k2*fd_actual
