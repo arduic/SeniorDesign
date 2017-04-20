@@ -3,11 +3,12 @@ close all;
 clc;
 
 % R = 3000; vr = 0;  % far, stationary
-% R = 500; vr = convvel(100, 'mph', 'm/s');  % close, fast towards
-R = 500; vr = convvel(-100, 'mph', 'm/s');  % close, fast away
+R = 500; vr = convvel(100, 'mph', 'm/s');  % close, fast towards
+% R = 500; vr = convvel(-100, 'mph', 'm/s');  % close, fast away
 % R = 3000; vr = convvel(-100, 'mph', 'm/s');
 
 
+% Tm = 100*10^-6;
 Tm = 10^-4;
 c = 3*10^8;  % speed of light
 df = 10^6;  % beat (delata freq)

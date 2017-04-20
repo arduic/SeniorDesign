@@ -192,6 +192,7 @@ begin
     fd <= (fb_down-fb_up)/2;
 --    r <= c*fr/(4*fm*df);
     r <= fr/133;
+--    r <= fr/148;
 --    vr <= c*fd/(2*f0);
     vr <= fd/533;
 
