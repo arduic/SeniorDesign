@@ -25,6 +25,17 @@ fft_config_path = [getenv('HOMEDRIVE') getenv('HOMEPATH') '\' project_name '\' .
 
 
 %% FFT Settings
+Tm = 10^-4;
+c = 3*10^8;  % speed of light
+df = 10^6;  % beat (delata freq)
+fm = 1/Tm;  % modulation rate (period)
+f0 = 80*10^9;  % Starting freqency
+
+kr = floor(1/(c/(4*fm*df)));  % r = fr/k1
+kd = floor(1/(c/(2*f0)));  % vel = fd/k2
+assert(kr > 0);
+assert(kd > 0);
+
 % Modify the length of the FFT in the line below
 log2fftlen = 8;
 fftlen = 2^log2fftlen;  % Transform length/point size
@@ -37,5 +48,5 @@ ip_width = 8;
 
 % Sampling frequency
 % Fs = 1000;  % Hz
-Fs = 10240000;
 windows = 4;
+Fs = 1/(Tm/(fftlen*windows));  % L points from 0 to Tm
