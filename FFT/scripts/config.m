@@ -34,8 +34,8 @@ df = 10^6;  % beat (delata freq)
 fm = 1/Tm;  % modulation rate (period)
 f0 = 80*10^9;  % Starting freqency
 
-kr = floor(1/(c/(4*fm*df)));  % r = fr/k1
-kd = floor(1/(c/(2*f0)));  % vel = fd/k2
+kr = 1/(c/(4*fm*df));  % r = fr/k1
+kd = 1/(c/(2*f0));  % vel = fd/k2
 assert(kr > 0);
 assert(kd > 0);
 

@@ -4,8 +4,8 @@ fprintf(fo,'constant INPUT_FILE: string := "%s";\n', input_data_path);
 fprintf(fo,'constant OUTPUT_FILE: string := "%s";\n', output_data_path);
 fprintf(fo,'constant FFTLEN: integer := %d;\n', fftlen);
 fprintf(fo,'constant WINDOWS: integer := %d;\n', windows);
-fprintf(fo,'constant KR: integer := %d;\n', kr);
-fprintf(fo,'constant KD: integer := %d;\n', kd);
+fprintf(fo,'constant KR: integer := %d;\n', floor(kr));
+fprintf(fo,'constant KD: integer := %d;\n', floor(kd));
 
 % Types
 fprintf(fo,'type FREQ_SPEC_T is array(0 to FFTLEN-1) of integer;\n');
