@@ -1,6 +1,5 @@
-function [signal]=generate_beat_signal(L, Tm, R, vr)
-    run('config.m');
-
+function [signal, t]=generate_beat_signal(L, df, c, f0, Tm, R, vr)
+    fm = 1/Tm;
     fR = R*4*fm*df/c;
     fd = vr*2*f0/c;
 
@@ -20,8 +19,11 @@ function [signal]=generate_beat_signal(L, Tm, R, vr)
 
     % Create signal
     t = (0:(L-1))/L*Tm;
-    delay_ratio = 1/5;
+    
+    travel_time = 2*R/c;  % time delay for the signal to travel to cloud and back
+    delay_ratio = travel_time/Tm;
     cutoff = floor(L*(1-delay_ratio));
+    
     t1 = t(1:cutoff);
     t2 = t(cutoff+1:end);
     signal1 = sin(2*pi*fb_up*t1);

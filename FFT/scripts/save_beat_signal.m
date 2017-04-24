@@ -12,12 +12,12 @@ run('config.m');
 L = 1024;  % FFT length
 Fs = 1/(Tm/L);  % L points from 0 to Tm
 
-signal = generate_beat_signal(L, Tm, R, vr);
+[signal, t] = generate_beat_signal(L, df, c, f0, Tm, R, vr);
 
-%     figure;
-%     plot(t, signal);
-%     title('Input Signal');
-%     xlabel('Time (s)');
+figure;
+plot(t, signal);
+title('Input Signal');
+xlabel('Time (s)');
 
 % FFT
 Y = fft(signal);
@@ -37,10 +37,9 @@ lim = mean(mag);
 %     fprintf('Pk @ %g Hz\n', f(locs));
 
 %% FFT windowing
-partitions = 4;
-fft_size = L/partitions;
+fft_size = L/windows;
 fft_results = fft_window2(signal, fft_size);
-dominant_freqs = zeros(1, partitions);
+dominant_freqs = zeros(1, windows);
 f2 = (0:(fft_size/2)-1)*Fs/fft_size;
 for i=1:size(fft_results, 1)
     % Keep only first half of data where f < fs/2
@@ -60,10 +59,10 @@ end
 dominant_freqs;
 save(beat_signal_file, 'signal');
 
-fb_up_actual = dominant_freqs(1);
-fb_down_actual = dominant_freqs(end);
-fr_actual = (fb_up_actual + fb_down_actual)/2;
-fd_actual = (fb_down_actual - fb_up_actual)/2;
+fb_up_actual = dominant_freqs(1)
+fb_down_actual = dominant_freqs(end)
+fr_actual = (fb_up_actual + fb_down_actual)/2
+fd_actual = (fb_down_actual - fb_up_actual)/2
 k1 = c/(4*fm*df);
 k2 = c/(2*f0);
 r = k1*fr_actual

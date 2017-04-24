@@ -185,16 +185,12 @@ architecture tb of tb_xfft_8bit_256L is
 begin
 
     max_freq <= FREQ_SPEC(max_mag_i);
---    freq_buff(window_count) <= max_freq;
     fb_up <= freq_buff(0);
     fb_down <= freq_buff(windows-1);
     fr <= (fb_up+fb_down)/2;
     fd <= (fb_down-fb_up)/2;
---    r <= c*fr/(4*fm*df);
-    r <= fr/133;
---    r <= fr/148;
---    vr <= c*fd/(2*f0);
-    vr <= fd/533;
+    r <= fr/KR;
+    vr <= fd/KD;
 
   -----------------------------------------------------------------------
   -- Instantiate the DUT

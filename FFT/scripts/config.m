@@ -27,7 +27,8 @@ beat_signal_file = 'tb_generated_beat.mat';
 
 
 %% FFT Settings
-Tm = 10^-4;
+% Tm = 10^-4;
+Tm = 7.487e-5;
 c = 3*10^8;  % speed of light
 df = 10^6;  % beat (delata freq)
 fm = 1/Tm;  % modulation rate (period)
