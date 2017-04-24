@@ -16,6 +16,10 @@ Tms = Tm_start:step_size:Tm_end;
 ranges = zeros(1, length(Tms));
 vels = zeros(1, length(Tms));
 
+L = 1024;  % FFT length
+
+run('config.m');
+
 for j=1:length(Tms)
     Tm = Tms(j);
 
@@ -25,7 +29,6 @@ for j=1:length(Tms)
     df = 10^6;  % beat (delata freq)
     fm = 1/Tm;  % modulation rate (period)
     f0 = 80*10^9;  % Starting freqency
-    L = 1024;  % FFT length
     Fs = 1/(Tm/L);  % L points from 0 to Tm
 
     fR = R*4*fm*df/c;

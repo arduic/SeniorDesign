@@ -9,7 +9,7 @@ L = fftlen*windows;
 
 t = time_from_sample_length(Fs, L);
 
-load('close_fast_towards.mat');
+load(beat_signal_file);
 % signal = exp(1i*2*pi*10*t) + exp(1i*2*pi*30*t)/4;  % good
 % signal = sin(2*pi*20*t) + sin(2*pi*60*t)/4;  % good
 % signal = chirp(t, 10, t(end), 100);  % good

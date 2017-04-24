@@ -23,6 +23,8 @@ project_name = 'FFT_ip_test';
 fft_config_path = [getenv('HOMEDRIVE') getenv('HOMEPATH') '\' project_name '\' ...
     project_name '.srcs\sources_1\imports\sources\config.vhd'];
 
+beat_signal_file = 'tb_generated_beat.mat';
+
 
 %% FFT Settings
 Tm = 10^-4;
