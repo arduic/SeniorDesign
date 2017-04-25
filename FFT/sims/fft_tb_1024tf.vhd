@@ -8,7 +8,6 @@ use std.textio.all;
 
 library work;
 use work.config.all;
-use work.utils.all;
 
 entity fft_tb is
 end fft_tb;
@@ -74,6 +73,8 @@ architecture Behavioral of fft_tb is
     signal m_axis_data_tdata_im             : std_logic_vector(7 downto 0) := (others => '0');  -- imaginary data
     signal m_axis_data_tuser_xk_index       : std_logic_vector(9 downto 0) := (others => '0');  -- sample index
     
+    file data_in: text open read_mode is input_file;
+
     -----------------------------------------------------------------------
     -- Constants, types and functions to create input data
     -----------------------------------------------------------------------
@@ -85,10 +86,13 @@ architecture Behavioral of fft_tb is
         im : std_logic_vector(IP_WIDTH-1 downto 0);
     end record;
     type T_IP_TABLE is array (0 to MAX_SAMPLES-1) of T_IP_SAMPLE;
-        
+    
+    type T_MAG_TABLE is array (0 to MAX_SAMPLES-1) of integer;
+    
     -- Zeroed input data table, for reset and initialization
     constant IP_TABLE_CLEAR : T_IP_TABLE := (others => (re => (others => '0'),
-                                                        im => (others => '0')));
+                                                      im => (others => '0')));
+    constant MAG_TABLE_CLEAR: T_MAG_TABLE := (others => 0);
 
     -- Function to read in an input signal from a text file specified in config.vhd
     impure function create_ip_table_from_file return T_IP_TABLE is
@@ -107,9 +111,16 @@ architecture Behavioral of fft_tb is
         end loop;
         return result;
     end function;
+    
+    impure function clear_output_file(dest_file: string) return integer is
+        file data_out: text open write_mode is dest_file;
+    begin
+        return 0;
+    end function;
 
     -- Function to record output to a file
     -- Return type should be void, but I don't know how to make a void function in vhdl
+    -- mag = sqrt(actual(start:end_, 1).^2 + actual(start:end_, 2).^2);
     impure function record_master_output(data: T_IP_TABLE; dest_file: string) return integer is
         file data_out: text open append_mode is dest_file;
         constant sep: string := " ";
@@ -138,16 +149,12 @@ architecture Behavioral of fft_tb is
     end function;
     
     -- Create the input data
+--    constant IP_DATA: T_IP_TABLE := create_ip_table_from_file;
     signal IP_DATA: T_IP_TABLE := IP_TABLE_CLEAR;
     signal MAG_DATA: T_MAG_TABLE := MAG_TABLE_CLEAR;
     signal max_mag: integer := 0;
     signal max_mag_i: integer := 0;
     signal max_freq: integer := 0;
-    
-    signal freq_buff: freq_buff_t := (others => 0);
-    signal window_count: integer range 0 to windows-1 := 0;
-    signal fb_up, fb_down, fr, fd: integer := 0;
-    signal r, vr: integer := 0;
 
     -----------------------------------------------------------------------
     -- Testbench signals
@@ -169,22 +176,12 @@ architecture Behavioral of fft_tb is
 begin
 
     max_freq <= FREQ_SPEC(max_mag_i);
-    freq_buff(window_count) <= max_freq;
-    fb_up <= freq_buff(0);
-    fb_down <= freq_buff(windows-1);
-    fr <= (fb_up+fb_down)/2;
-    fd <= (fb_down-fb_up)/2;
---    r <= c*fr/(4*fm*df);
-    r <= fr/13;
---    vr <= c*fd/(2*f0);
-    vr <= fd/533;
-    
-    
+
     -----------------------------------------------------------------------
     -- Instantiate the DUT
     -----------------------------------------------------------------------
     
-    dut : entity work.xfft_8bit_1024L
+    dut : entity work.xfft_0
         port map (
             aclk                        => aclk,
             s_axis_config_tvalid        => s_axis_config_tvalid,
@@ -390,7 +387,7 @@ begin
       if m_axis_data_tvalid = '1' and m_axis_data_tready = '1' then
         -- Record output data such that it can be used as input data
         -- Output sample index is given by xk_index field of m_axis_data_tuser
-        index := to_integer(unsigned(m_axis_data_tuser_xk_index));
+        index := to_integer(unsigned(m_axis_data_tuser(9 downto 0)));
         
         re_v := m_axis_data_tdata(7 downto 0);
         im_v := m_axis_data_tdata(15 downto 8);
@@ -399,7 +396,7 @@ begin
         
         mag := re_i*re_i + im_i*im_i;
         mag_data(index) <= mag;
-        if mag > max_mag and index < fftlen_cutoff then
+        if mag > max_mag then
             max_mag <= mag;
             max_mag_i <= index;
         end if;
@@ -410,7 +407,6 @@ begin
         if m_axis_data_tlast = '1' then  -- end of output frame: increment frame counter
           op_frame <= op_frame + 1;
           dummy := record_master_output(op_data, output_file);  -- I do not know how to declare a void func in vhdl
-          window_count <= (window_count + 1) mod windows;
         end if;
       end if;
     end if;

@@ -30,9 +30,9 @@ architecture tb of tb_xfft_8bit_256L is
   signal aclk                        : std_logic := '0';  -- the master clock
 
   -- Config slave channel signals
-  signal s_axis_config_tvalid        : std_logic := '0';  -- payload is valid
-  signal s_axis_config_tready        : std_logic := '1';  -- slave is ready
-  signal s_axis_config_tdata         : std_logic_vector(15 downto 0) := (others => '0');  -- data payload
+--  signal s_axis_config_tvalid        : std_logic := '1';  -- payload is valid
+--  signal s_axis_config_tready        : std_logic := '1';  -- slave is ready
+--  signal s_axis_config_tdata         : std_logic_vector(15 downto 0) := (others => '0');  -- data payload
 
   -- Data slave channel signals
   signal s_axis_data_tvalid          : std_logic := '0';  -- payload is valid
@@ -63,8 +63,8 @@ architecture tb of tb_xfft_8bit_256L is
   -----------------------------------------------------------------------
 
   -- Config slave channel alias signals
-  signal s_axis_config_tdata_fwd_inv      : std_logic                    := '0';              -- forward or inverse
-  signal s_axis_config_tdata_scale_sch    : std_logic_vector(7 downto 0) := (others => '0');  -- scaling schedule
+--  signal s_axis_config_tdata_fwd_inv      : std_logic                    := '0';              -- forward or inverse
+--  signal s_axis_config_tdata_scale_sch    : std_logic_vector(7 downto 0) := (others => '0');  -- scaling schedule
 
   -- Data slave channel alias signals
   signal s_axis_data_tdata_re             : std_logic_vector(7 downto 0) := (others => '0');  -- real data
@@ -181,6 +181,32 @@ architecture tb of tb_xfft_8bit_256L is
         end loop;
         return max_idx;
     end function;
+    
+    
+component fft_wrapper is
+        Port (
+            aclk : IN STD_LOGIC;
+    --        s_axis_config_tdata : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+    --        s_axis_config_tvalid : IN STD_LOGIC;
+    --        s_axis_config_tready : OUT STD_LOGIC;
+            s_axis_data_tdata : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
+            s_axis_data_tvalid : IN STD_LOGIC;
+            s_axis_data_tready : OUT STD_LOGIC;
+            s_axis_data_tlast : IN STD_LOGIC;
+            m_axis_data_tdata : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+            m_axis_data_tuser : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
+            m_axis_data_tvalid : OUT STD_LOGIC;
+            m_axis_data_tready : IN STD_LOGIC;
+            m_axis_data_tlast : OUT STD_LOGIC;
+            event_frame_started : OUT STD_LOGIC;
+            event_tlast_unexpected : OUT STD_LOGIC;
+            event_tlast_missing : OUT STD_LOGIC;
+            event_status_channel_halt : OUT STD_LOGIC;
+            event_data_in_channel_halt : OUT STD_LOGIC;
+            event_data_out_channel_halt : OUT STD_LOGIC
+        );
+    end component;
+    
 
 begin
 
@@ -195,29 +221,28 @@ begin
   -----------------------------------------------------------------------
   -- Instantiate the DUT
   -----------------------------------------------------------------------
-
-  dut : entity work.xfft_8bit_256L
-    port map (
-      aclk                        => aclk,
-      s_axis_config_tvalid        => s_axis_config_tvalid,
-      s_axis_config_tready        => s_axis_config_tready,
-      s_axis_config_tdata         => s_axis_config_tdata,
-      s_axis_data_tvalid          => s_axis_data_tvalid,
-      s_axis_data_tready          => s_axis_data_tready,
-      s_axis_data_tdata           => s_axis_data_tdata,
-      s_axis_data_tlast           => s_axis_data_tlast,
-      m_axis_data_tvalid          => m_axis_data_tvalid,
-      m_axis_data_tready          => m_axis_data_tready,
-      m_axis_data_tdata           => m_axis_data_tdata,
-      m_axis_data_tuser           => m_axis_data_tuser,
-      m_axis_data_tlast           => m_axis_data_tlast,
-      event_frame_started         => event_frame_started,
-      event_tlast_unexpected      => event_tlast_unexpected,
-      event_tlast_missing         => event_tlast_missing,
-      event_status_channel_halt   => event_status_channel_halt,
-      event_data_in_channel_halt  => event_data_in_channel_halt,
-      event_data_out_channel_halt => event_data_out_channel_halt
-      );
+  dut : fft_wrapper
+  port map (
+    aclk                        => aclk,
+--    s_axis_config_tvalid        => s_axis_config_tvalid,
+--    s_axis_config_tready        => s_axis_config_tready,
+--    s_axis_config_tdata         => s_axis_config_tdata,
+    s_axis_data_tvalid          => s_axis_data_tvalid,
+    s_axis_data_tready          => s_axis_data_tready,
+    s_axis_data_tdata           => s_axis_data_tdata,
+    s_axis_data_tlast           => s_axis_data_tlast,
+    m_axis_data_tvalid          => m_axis_data_tvalid,
+    m_axis_data_tready          => m_axis_data_tready,
+    m_axis_data_tdata           => m_axis_data_tdata,
+    m_axis_data_tuser           => m_axis_data_tuser,
+    m_axis_data_tlast           => m_axis_data_tlast,
+    event_frame_started         => event_frame_started,
+    event_tlast_unexpected      => event_tlast_unexpected,
+    event_tlast_missing         => event_tlast_missing,
+    event_status_channel_halt   => event_status_channel_halt,
+    event_data_in_channel_halt  => event_data_in_channel_halt,
+    event_data_out_channel_halt => event_data_out_channel_halt
+    );
 
   -----------------------------------------------------------------------
   -- Generate clock
@@ -334,62 +359,6 @@ begin
   end process data_stimuli;
 
   -----------------------------------------------------------------------
-  -- Generate config slave channel inputs
-  -----------------------------------------------------------------------
-
-  config_stimuli : process
-    variable scale_sch : std_logic_vector(7 downto 0);
-  begin
-
-    -- Drive a configuration when requested by data_stimuli process
-    wait until rising_edge(aclk);
-    while do_config = NONE or do_config = DONE loop
-      wait until rising_edge(aclk);
-    end loop;
-
-    -- If the configuration is requested to occur after the next frame starts, wait for that event
-    if do_config = AFTER_START then
-      wait until event_frame_started = '1';
-      wait until rising_edge(aclk);
-    end if;
-
-    -- Drive inputs T_HOLD time after rising edge of clock
-    wait for T_HOLD;
-
-    -- Construct the config slave channel TDATA signal
-    s_axis_config_tdata <= (others => '0');  -- clear unused bits
-    -- Format the transform direction
-    if cfg_fwd_inv = FWD then
-      s_axis_config_tdata(0) <= '1';  -- forward
-    elsif cfg_fwd_inv = INV then
-      s_axis_config_tdata(0) <= '0';  -- inverse
-    end if;
-    -- Format the scaling schedule
-    if cfg_scale_sch = ZERO then  -- no scaling
-      scale_sch := (others => '0');
-    elsif cfg_scale_sch = DEFAULT then  -- default scaling, for largest magnitude output with no overflow guaranteed
-      scale_sch(1 downto 0) := "11";  -- largest scaling at first stage
-      for s in 2 to 4 loop
-        scale_sch(s*2-1 downto s*2-2) := "10";  -- less scaling at later stages
-      end loop;
-    end if;
-    s_axis_config_tdata(8 downto 1) <= scale_sch;
-
-    -- Drive the transaction on the config slave channel
-    s_axis_config_tvalid <= '1';
-    loop
-      wait until rising_edge(aclk);
-      exit when s_axis_config_tready = '1';
-    end loop;
-    wait for T_HOLD;
-    s_axis_config_tvalid <= '0';
-
-    -- Tell the data_stimuli process that the configuration has been done
-    do_config := DONE;
-
-  end process config_stimuli;
-
-  -----------------------------------------------------------------------
   -- Record outputs, to use later as inputs for another frame
   -----------------------------------------------------------------------
 
@@ -500,8 +469,8 @@ begin
   -----------------------------------------------------------------------
 
   -- Config slave channel alias signals
-  s_axis_config_tdata_fwd_inv    <= s_axis_config_tdata(0);
-  s_axis_config_tdata_scale_sch  <= s_axis_config_tdata(8 downto 1);
+--  s_axis_config_tdata_fwd_inv    <= s_axis_config_tdata(0);
+--  s_axis_config_tdata_scale_sch  <= s_axis_config_tdata(8 downto 1);
 
   -- Data slave channel alias signals
   s_axis_data_tdata_re           <= s_axis_data_tdata(7 downto 0);
