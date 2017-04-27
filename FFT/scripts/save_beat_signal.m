@@ -13,6 +13,7 @@ L = 1024;  % FFT length
 Fs = 1/(Tm/L);  % L points from 0 to Tm
 
 [signal, t] = generate_beat_signal(L, df, c, f0, Tm, R, vr);
+[signal2, t2] = generate_beat_signal(L, df, c, f0, Tm, 3000, vr);
 
 figure;
 plot(t, signal);
@@ -46,17 +47,18 @@ for i=1:size(fft_results, 1)
     data = fft_results(i, 1:(fft_size/2));
     mag = abs(data);
 
-%         figure;
-%         plot(f2, mag);
-%         title(sprintf('FFT for Partition %d', i));
-%         xlabel('Frequency');
-
     [Y,I] = max(mag);
     max_freq = f2(I);
     dominant_freqs(i) = max_freq;
 end
 
-dominant_freqs;
+% signal_copy = signal;
+% signal = [];
+% for i=1:repetitions
+%     signal = [signal signal_copy];
+% end
+
+signal = [signal signal2];
 save(beat_signal_file, 'signal');
 
 fb_up_actual = dominant_freqs(1)

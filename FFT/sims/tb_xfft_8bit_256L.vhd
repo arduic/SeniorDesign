@@ -38,7 +38,7 @@ architecture tb of tb_xfft_8bit_256L is
   signal s_axis_data_tvalid          : std_logic := '0';  -- payload is valid
   signal s_axis_data_tready          : std_logic := '1';  -- slave is ready
   signal s_axis_data_tdata           : std_logic_vector(15 downto 0) := (others => '0');  -- data payload
-  signal s_axis_data_tlast           : std_logic := '0';  -- indicates end of packet
+--  signal s_axis_data_tlast           : std_logic := '0';  -- indicates end of packet
 
   -- Data master channel signals
   signal m_axis_data_tvalid          : std_logic := '0';  -- payload is valid
@@ -148,7 +148,7 @@ architecture tb of tb_xfft_8bit_256L is
   signal max_freq: integer := 0;
   
   signal freq_buff: freq_buff_t := (others => 0);
-  signal window_count: integer range 0 to windows-1 := 0;
+  signal window_count: integer := 0;
   signal fb_up, fb_down, fr, fd: integer := 0;
   signal r, vr: integer := 0;
 
@@ -192,7 +192,7 @@ component fft_wrapper is
             s_axis_data_tdata : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
             s_axis_data_tvalid : IN STD_LOGIC;
             s_axis_data_tready : OUT STD_LOGIC;
-            s_axis_data_tlast : IN STD_LOGIC;
+--            s_axis_data_tlast : IN STD_LOGIC;
             m_axis_data_tdata : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
             m_axis_data_tuser : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
             m_axis_data_tvalid : OUT STD_LOGIC;
@@ -230,7 +230,7 @@ begin
     s_axis_data_tvalid          => s_axis_data_tvalid,
     s_axis_data_tready          => s_axis_data_tready,
     s_axis_data_tdata           => s_axis_data_tdata,
-    s_axis_data_tlast           => s_axis_data_tlast,
+--    s_axis_data_tlast           => s_axis_data_tlast,
     m_axis_data_tvalid          => m_axis_data_tvalid,
     m_axis_data_tready          => m_axis_data_tready,
     m_axis_data_tdata           => m_axis_data_tdata,
@@ -279,21 +279,8 @@ begin
                              valid_mode : integer := 0 ) is
     begin
       s_axis_data_tdata  <= data;
-      s_axis_data_tlast  <= last;
-
-      if valid_mode = 1 then
-        uniform(seed1, seed2, rand);  -- generate random number
-        if rand < 0.25 then
-          s_axis_data_tvalid <= '0';
-          uniform(seed1, seed2, rand);  -- generate another random number
-          wait for CLOCK_PERIOD * integer(round(rand * 4.0));  -- hold TVALID low for up to 4 cycles
-          s_axis_data_tvalid <= '1';  -- now assert TVALID
-        else
-          s_axis_data_tvalid <= '1';
-        end if;
-      else
-        s_axis_data_tvalid <= '1';
-      end if;
+--      s_axis_data_tlast  <= last;
+      s_axis_data_tvalid <= '1';
       loop
         wait until rising_edge(aclk);
         exit when s_axis_data_tready = '1';
@@ -396,6 +383,10 @@ begin
           dummy := record_master_output(op_data, output_file);  -- I do not know how to declare a void func in vhdl
           freq_buff(window_count) <= max_freq;
           window_count <= (window_count + 1) mod windows;
+          if window_count = 0 then
+            -- Reset
+            mag_data <= mag_table_clear;
+          end if;
           
 --          mag_data <= MAG_TABLE_CLEAR;
 --          max_mag <= 0;

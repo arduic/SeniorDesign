@@ -18,11 +18,11 @@ load(beat_signal_file);
 % signal = fft_modulated_pulse(t, 1/1000, 100);  % bad
 % signal = fft_modulated_pulse(t, 1/10, 100);  % good
 
-f = Fs/L*(0:(L-1));
-Y = fft(signal);
-figure;
-plot(f, abs(Y));
-title('Expected FFT output (rigular signal)');
+% f = Fs/L*(0:(L-1));
+% Y = fft(signal);
+% figure;
+% plot(f, abs(Y));
+% title('Expected FFT output (rigular signal)');
 
 % figure;
 % plot(t, abs(signal));
@@ -44,11 +44,11 @@ assert(min(re) >= -2^(ip_width-1));
 assert(max(im) < 2^(ip_width-1));
 assert(min(im) >= -2^(ip_width-1));
 
-norm_signal = complex(re, im);
-Y_norm = fft(norm_signal);
-figure;
-plot(f, abs(Y_norm));
-title('Expected FFT output (normalized signal)');
+% norm_signal = complex(re, im);
+% Y_norm = fft(norm_signal);
+% figure;
+% plot(f, abs(Y_norm));
+% title('Expected FFT output (normalized signal)');
 
 % figure;
 % plot(t, sqrt(re.^2 + im.^2));

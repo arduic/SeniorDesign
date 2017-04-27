@@ -12,11 +12,11 @@ entity fft_wrapper is
 --        s_axis_config_tdata : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
 --        s_axis_config_tvalid : IN STD_LOGIC;
 --        s_axis_config_tready : OUT STD_LOGIC;
-        s_axis_data_tdata : IN STD_LOGIC_VECTOR(15 DOWNTO 0);
-        s_axis_data_tvalid : IN STD_LOGIC;
-        s_axis_data_tready : OUT STD_LOGIC;
-        s_axis_data_tlast : IN STD_LOGIC;
-        m_axis_data_tdata : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);
+        s_axis_data_tdata : IN STD_LOGIC_VECTOR(15 DOWNTO 0);  -- The actual input data
+        s_axis_data_tvalid : IN STD_LOGIC;  -- Heep high when inputting tdata, then low when not
+        s_axis_data_tready : OUT STD_LOGIC;  -- Indicates when the ip core can accept data; must hold the tdata and tvalid constant when this is low while attempting to inpput valid data
+--        s_axis_data_tlast : IN STD_LOGIC;  -- Keep low when inputting tdata, high otherwise
+        m_axis_data_tdata : OUT STD_LOGIC_VECTOR(15 DOWNTO 0);  -- The actual output data
         m_axis_data_tuser : OUT STD_LOGIC_VECTOR(7 DOWNTO 0);
         m_axis_data_tvalid : OUT STD_LOGIC;
         m_axis_data_tready : IN STD_LOGIC;
@@ -43,6 +43,11 @@ architecture Behavioral of fft_wrapper is
     signal s_axis_config_tready: std_logic := '1';  -- slave is ready
     signal s_axis_config_tvalid: std_logic := '0';  -- payload is valid
     signal s_axis_config_tdata: std_logic_vector(15 downto 0) := (others => '0');  -- data payload
+    
+    signal s_axis_data_tlast: std_logic;
+    
+    signal m_axis_data_tuser_tmp: std_logic_vector(7 downto 0) := (others => '0');  -- user-defined payload
+    signal m_axis_data_tuser_xk_index_tmp: std_logic_vector(7 downto 0) := (others => '0');  -- sample index
     
 
 component xfft_8bit_256L IS
@@ -85,7 +90,7 @@ begin
           m_axis_data_tvalid          => m_axis_data_tvalid,
           m_axis_data_tready          => m_axis_data_tready,
           m_axis_data_tdata           => m_axis_data_tdata,
-          m_axis_data_tuser           => m_axis_data_tuser,
+          m_axis_data_tuser           => m_axis_data_tuser_tmp,
           m_axis_data_tlast           => m_axis_data_tlast,
           event_frame_started         => event_frame_started,
           event_tlast_unexpected      => event_tlast_unexpected,
@@ -94,6 +99,10 @@ begin
           event_data_in_channel_halt  => event_data_in_channel_halt,
           event_data_out_channel_halt => event_data_out_channel_halt
       );
+      
+      s_axis_data_tlast <= not s_axis_data_tvalid;  -- The last input will be indicated when the input is no longer valid
+      m_axis_data_tuser_xk_index_tmp <= m_axis_data_tuser_tmp(7 downto 0);
+      m_axis_data_tuser <= m_axis_data_tuser_tmp;
       
       -----------------------------------------------------------------------
       -- Generate config slave channel inputs
@@ -109,5 +118,6 @@ begin
             s_axis_config_tvalid <= '0';
         end if;
       end process;
+      
 
 end Behavioral;

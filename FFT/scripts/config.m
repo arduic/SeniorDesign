@@ -52,4 +52,5 @@ ip_width = 8;
 % Sampling frequency
 % Fs = 1000;  % Hz
 windows = 4;
+repetitions = 2;
 Fs = 1/(Tm/(fftlen*windows));  % L points from 0 to Tm
