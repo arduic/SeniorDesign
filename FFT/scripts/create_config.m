@@ -6,6 +6,7 @@ fprintf(fo,'constant FFTLEN: integer := %d;\n', fftlen);
 fprintf(fo,'constant WINDOWS: integer := %d;\n', windows);
 fprintf(fo,'constant KR: integer := %d;\n', floor(kr));
 fprintf(fo,'constant KD: integer := %d;\n', floor(kd));
+fprintf(fo,'constant INPUT_WIDTH: integer := %d;\n', ip_width);
 
 % Types
 fprintf(fo,'type FREQ_SPEC_T is array(0 to FFTLEN-1) of integer;\n');
