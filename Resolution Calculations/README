@@ -1,0 +1,59 @@
+------------------------------- RUN ORDER -------------------------------
+
+1. CalcResolution
+2. converter
+
+If Desired after step 1 and 2.
+Results
+LUT_Gen
+
+------------------------------- USAGE NOTES -------------------------------
+
+Calc Resolution tuning:
+Specify the m and n element you are interested in. For future use this can be expanded to iterate through. (m=30; n=30;)
+Specify the range of values and broad angle.	(theta_min=30; theta_max=87; Broad_ang=55;)
+Specify the step size [Note this determines accuracy of calculations but also increases processing time the smaller it is] 	(delta_step=0.01;)
+Specify the DAC resolution used later by converter.		(nBitRes=2^8;)
+
+converter tuning:
+No tuning to be done here
+
+Results:
+Change what you want it to output but nothing to tune.
+
+LUT_Gen:
+This is still very much a work in progress for now it's a very targeted solution that needs expansion use with care.
+
+
+------------------------------- SIMPLE EXPLANATION -------------------------------
+
+CalcResolution:
+This does the bulk of the actual work. Determining possible theta values using vpasolve. It takes into consideration the range of possible values
+and using the step sizes it scans small sub sections of the possible solutions. It's possible multiple sub solutions exist but after running through
+converter the values that are that close will likely be purged. (assuming delta_step=0.01)
+
+The equation it is trying to solve is labelled eq1 and is a simplification/expansion of traditional FMCW radar equations. 
+The value of psi has been replaced with the individual phase shifts from the different VCO's with the scalars for them (assuming 3,2,2,2,2 relationship).
+The equations has been rearranged so that it can solve for a perticular theta with the theta on the RHS isolated from everything else (except the step catcher)
+
+
+Converter:
+This deals with a problem that vpasolve has. While the traditional solve function in MATLAB can support discrete values aka step sizes (for the 8bit DAC)
+vpasolve can not. The issue is that the traditional solve will not find discrete solutions if you specify this, the converter is the work around to this problem.
+After calculating all of the theta from the previous step this program will look back over the solutions and shift them to the nearest -pi/2:pi/nBitRes:pi/2 step.
+Then it will re-evaluate the equation with the VCO psi shifts locked and determine if a solution still exists, if one does exist it specifies the solution.
+Once this is complete it looks back over the solutions and purges any solutions that are identical (note due to floating point error I define identical as delta>10^-7).
+It then takes all the important pieces of data and compresses into a single table which is saved as a CSV for later use if desired.
+
+Please note there is likely some optimization that can be done here by reordering the duplicate purger and the result checker.
+When first created I cared about accuracy not efficiency but this should be done in the future.
+
+
+Results:
+All this does is read the specified CSV and grab some interesting information about the angles it found.
+Nothing really to explain here it was just nice for some presentation information.
+
+
+LUT_Gen:
+Takes the csv created by converted and turns it into an LUT to be used in VHDL. Right now it can only handle one CSV and as such it can only handle
+one element for the LUT. It still needs a lot of work so I won't bother explaining what it does yet. Mostly it just writes a file.
