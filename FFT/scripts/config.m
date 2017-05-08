@@ -28,11 +28,15 @@ beat_signal_file = 'tb_generated_beat.mat';
 
 %% FFT Settings
 % Tm = 10^-4;
-Tm = 7.487e-5;
+% Tm = 7.487e-5;
+Tm = 8.4e-5;
 c = 3*10^8;  % speed of light
-df = 10^6;  % beat (delata freq)
+% df = 10^6;  % beat (delata freq)
+df = 10^7;
+% df = 0.8*10^7;
 fm = 1/Tm;  % modulation rate (period)
 f0 = 80*10^9;  % Starting freqency
+% f0 = 1.608e11;
 
 kr = 1/(c/(4*fm*df));  % r = fr/k1
 kd = 1/(c/(2*f0));  % vel = fd/k2
@@ -52,5 +56,6 @@ ip_width = 8;
 % Sampling frequency
 % Fs = 1000;  % Hz
 windows = 4;
+L = fftlen*windows;
 repetitions = 2;
-Fs = 1/(Tm/(fftlen*windows));  % L points from 0 to Tm
+Fs = 1/(Tm/L);  % L points from 0 to Tm

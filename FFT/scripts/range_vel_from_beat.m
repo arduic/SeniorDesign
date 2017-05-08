@@ -1,7 +1,7 @@
 function [R, vel]=range_vel_from_beat(L, df, Tm, f0, c, windows, signal)
     fm = 1/Tm;
     Fs = 1/(Tm/L);
-    fft_size = L/windows;
+    fft_size = floor(L/windows);
     fft_results = fft_window2(signal, fft_size);
     dominant_freqs = zeros(1, windows);
     f2 = (0:(fft_size/2)-1)*Fs/fft_size;

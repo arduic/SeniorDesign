@@ -2,21 +2,20 @@ clear;
 close all;
 clc;
 
-ranges = 500:3000;
+run('config.m');
 
-vel_steps = 100;
+ranges = 500:3000;
+% vr = 0;
+vr = convvel(100, 'mph', 'm/s');
+
+steps = 100;
 vel_start = 0;
 vel_end = convvel(100, 'mph', 'm/s');
-vel_step_size = (vel_end-vel_start)/vel_steps;
-vels = vel_start:vel_step_size:vel_end;
-
-run('config.m');
+vels = linspace(vel_start, vel_end, steps);
 
 ranges_actual = zeros(1, length(ranges));
 vels_actual = zeros(1, length(ranges));
-% vr = 0;
-vr = convvel(100, 'mph', 'm/s');
-L = 1024;
+
 for i=1:length(ranges)
     R = ranges(i);
     signal = generate_beat_signal(L, df, c, f0, Tm, R, vr);
