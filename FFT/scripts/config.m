@@ -29,7 +29,8 @@ beat_signal_file = 'tb_generated_beat.mat';
 %% FFT Settings
 % Tm = 10^-4;
 % Tm = 7.487e-5;
-Tm = 8.4e-5;
+Tm = 8.4e-5;  % farthest away and fastest
+% Tm = 6.743e-4;  % avg fwd speed
 c = 3*10^8;  % speed of light
 % df = 10^6;  % beat (delata freq)
 df = 10^7;

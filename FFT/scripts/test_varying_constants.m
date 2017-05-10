@@ -5,7 +5,8 @@ clc;
 % R = 3000; vr = 0;  % far, stationary
 % R = 500; vr = convvel(100, 'mph', 'm/s');  % close, fast towards
 % R = 500; vr = convvel(-100, 'mph', 'm/s');  % close, fast away
-R = 3000; vr = convvel(100, 'mph', 'm/s');
+% R = 3000; vr = convvel(100, 'mph', 'm/s');
+R = 3000; vr = 5.6793;  % avg hurrican fwd speed in m/s
 
 run('config.m');
 
@@ -15,7 +16,7 @@ TM = 1;
 DF = 2;
 F0 = 3;
 TL = 4;
-var = DF;
+var = TL;
 
 if var == TM
     x_start = 2*R/c;
