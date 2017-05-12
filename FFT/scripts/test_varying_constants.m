@@ -5,8 +5,8 @@ clc;
 % R = 3000; vr = 0;  % far, stationary
 % R = 500; vr = convvel(100, 'mph', 'm/s');  % close, fast towards
 % R = 500; vr = convvel(-100, 'mph', 'm/s');  % close, fast away
-% R = 3000; vr = convvel(100, 'mph', 'm/s');
-R = 3000; vr = 5.6793;  % avg hurrican fwd speed in m/s
+R = 3000; vr = convvel(100, 'mph', 'm/s');
+% R = 3000; vr = 5.6793;  % avg hurrican fwd speed in m/s
 
 run('config.m');
 
@@ -21,17 +21,21 @@ var = TL;
 if var == TM
     x_start = 2*R/c;
     x_end = 10^-3;
+    constant = 'Modulation Period';
 elseif var == DF
     x_start = 10^5;
     x_end = 2*10^7;
+    constant = 'Delta Freq';
 elseif var == F0
     x_start = 10^3;
     x_end = 10^12;
+    constant = 'f0';
 elseif var == TL
     % Try to keep each step a multiple of 4 to avoid rounding problems
     steps = 16;
     x_start = 256;
     x_end = steps*x_start;
+    constant = 'Transform Length';
 end
 
 ranges = zeros(1, steps);
@@ -72,7 +76,7 @@ subplot(2,2,1);
 plot(x_range, ranges);
 line = refline(0, R);
 line.Color = 'r';
-title('Range');
+title(sprintf('Range vs %s', constant));
 legend('Actual', sprintf('Expected (%d)', R));
 xlim([x_start x_end]);
 
@@ -80,7 +84,7 @@ subplot(2,2,2);
 plot(x_range, vels);
 line = refline(0, vr);
 line.Color = 'r';
-title('Velocity');
+title(sprintf('Velocity vs %s', constant));
 legend('Actual', sprintf('Expected (%f)', vr));
 xlim([x_start x_end]);
 

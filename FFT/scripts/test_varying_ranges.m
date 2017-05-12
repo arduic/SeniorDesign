@@ -34,7 +34,7 @@ vels_filtered = filter(b,a,vels_actual);
 
 
 figure;
-y_subs = 3;
+y_subs = 2;
 x_subs = 2;
 
 subplot(y_subs,x_subs,1);
@@ -48,7 +48,6 @@ line = refline(0, vr);
 line.Color = 'r';
 title('Velocity');
 legend('Actual', sprintf('Expected (%f)', vr));
-xlim([ranges(1) ranges(end)]);
 
 subplot(y_subs,x_subs,3);
 plot(ranges, abs((ranges_actual - ranges)./ranges*100));
@@ -58,14 +57,14 @@ subplot(y_subs,x_subs,4);
 plot(ranges, abs((vels_actual - vr)/vr*100));
 title('Vel % error');
 
-subplot(y_subs,x_subs,5);
-plot(ranges(windowSize:end), ranges_filtered(windowSize:end), ranges(windowSize:end), ranges(windowSize:end));
-title('Range');
-legend('Actual', 'Expected');
-
-subplot(y_subs,x_subs,6);
-plot(ranges(windowSize:end), abs((ranges_filtered(windowSize:end) - ranges(windowSize:end))./ranges(windowSize:end)*100));
-title('Range % error');
+% subplot(y_subs,x_subs,5);
+% plot(ranges(windowSize:end), ranges_filtered(windowSize:end), ranges(windowSize:end), ranges(windowSize:end));
+% title('Range');
+% legend('Actual', 'Expected');
+% 
+% subplot(y_subs,x_subs,6);
+% plot(ranges(windowSize:end), abs((ranges_filtered(windowSize:end) - ranges(windowSize:end))./ranges(windowSize:end)*100));
+% title('Range % error');
 
 % subplot(y_subs,x_subs,7);
 % plot(ranges(windowSize:end), vels_filtered(windowSize:end));

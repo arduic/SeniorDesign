@@ -4,7 +4,8 @@ clc;
 
 run('config.m');
 
-vr = 5.6793;  % avg fwd speed of hurricane
+% vr = 5.6793;  % avg fwd speed of hurricane
+vr = convvel(100, 'mph', 'm/s');
 
 ranges = 3000:-1:500;
 vels = repmat(vr, 1, length(ranges));
@@ -60,6 +61,8 @@ end
 % Peaks
 [ranges_hi, ranges_lo] = envelope(ranges_actual, 1000, 'peak');
 ranges_avg = (ranges_hi + ranges_lo) / 2;
+vels_avg = -(ranges_avg(2:end)-ranges_avg(1:end-1))/dt;  % Multiple by -1 b/c moving towards the radar represents positive velocity
+
 
 % %Error
 ranges_err = abs(ranges_actual - ranges)./ranges*100;
@@ -70,25 +73,43 @@ ranges_lo_err = abs(ranges_lo - ranges)./ranges*100;
 ranges_avg_err = abs(ranges_avg - ranges)./ranges*100;
 ranges_max_err = abs(ranges_max - ranges(1:windowSize:end-1))./ranges(1:windowSize:end-1)*100;
 
+vel_avg_err = abs(vels_avg - vels(2:end))./vels(2:end)*100;
+
 figure;
 plot(t, ranges, t, ranges_actual, t(windowSize:end), ranges_sma(windowSize:end),...
-     t, ranges_hi, t, ranges_lo, t, ranges_avg,...
-     t_max, ranges_max);
-title('Hurrican distance');
-legend('Expected', 'Measured', 'SMA', 'High', 'Low', 'Avg', 'Max Period');
+     t, ranges_hi, t, ranges_lo, t, ranges_avg);
+title(sprintf('Hurrican distance @ %.2f m/s', vr));
+legend('Expected', 'Measured', 'SMA', 'High', 'Low', 'Avg');
 
 figure;
 [pks, locs] = findpeaks(ranges_err, 'MinPeakDistance', 5/dt);
 locs_t = t(locs);
-plot(t, ranges_err, t(windowSize:end), ranges_sma_err(windowSize:end),...
+% plot(t, ranges_err, t(windowSize:end), ranges_sma_err(windowSize:end),...
+%      t, ranges_hi_err, t, ranges_lo_err, t, ranges_avg_err,...
+%      locs_t, pks, 'o',...
+%      t_max, ranges_max_err);
+% legend('Measured', 'SMA', 'High', 'Low', 'Avg', 'Peaks', 'Max Period');
+plot(t, ranges_err,...
      t, ranges_hi_err, t, ranges_lo_err, t, ranges_avg_err,...
-     locs_t, pks, 'o',...
-     t_max, ranges_max_err);
+     locs_t, pks, 'o');
+legend('Measured', 'High', 'Low', 'Avg', 'Peaks');
 title('Hurrican distance % Error');
-legend('Measured', 'SMA', 'High', 'Low', 'Avg', 'Peaks', 'Max Period');
 
 
 figure;
-plot(t, vels, t, vels_actual, t(windowSize:end), vels_sma(windowSize:end));
+% plot(t, vels, t, vels_actual, t(windowSize:end), vels_sma(windowSize:end));
+% legend('Expected', 'Measured', 'SMA');
+plot(t, vels, t, vels_actual, t(2:end), vels_avg);
+legend('Expected', 'Measured', 'Avg');
 title('Hurrican velocity');
-legend('Expected', 'Measured', 'SMA');
+
+figure;
+plot(t, vels_err, t(2:end), vel_avg_err);
+legend('Measured', 'Avg');
+title('Hurrican velocity % Error');
+figure;
+
+plot(t, vels_err, t(2:end), vel_avg_err);
+legend('Measured', 'Avg');
+title('Hurrican velocity % Error Zoomed in');
+ylim([0 100]);
