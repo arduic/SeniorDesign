@@ -18,22 +18,45 @@ input_data_path = fullfile(data_dir, input_data_file);
 output_data_path = fullfile(data_dir, output_data_file);
 
 % CHANGE THIS WHEN STARTING A NEW PROJECT
-% ABSOLUTE path to fft_len.vhd in the vivado project
-fft_config_path = 'C:\Users\lc599.DREXEL\FFT_impl\FFT_impl.srcs\sources_1\imports\sources\fft_len.vhd';
+% ABSOLUTE path to config.vhd in the vivado project
+project_name = 'FFT_ip_test';
+fft_config_path = [getenv('HOMEDRIVE') getenv('HOMEPATH') '\' project_name '\' ...
+    project_name '.srcs\sources_1\imports\sources\config.vhd'];
+
+beat_signal_file = 'tb_generated_beat.mat';
 
 
 %% FFT Settings
+% Tm = 10^-4;
+% Tm = 7.487e-5;
+Tm = 8.4e-5;  % farthest away and fastest
+% Tm = 6.743e-4;  % avg fwd speed
+c = 3*10^8;  % speed of light
+% df = 10^6;  % beat (delata freq)
+df = 10^7;
+% df = 0.8*10^7;
+fm = 1/Tm;  % modulation rate (period)
+f0 = 80*10^9;  % Starting freqency
+% f0 = 1.608e11;
+
+kr = 1/(c/(4*fm*df));  % r = fr/k1
+kd = 1/(c/(2*f0));  % vel = fd/k2
+assert(kr > 0);
+assert(kd > 0);
+
 % Modify the length of the FFT in the line below
-log2fftlen = 10;
+log2fftlen = 8;
 fftlen = 2^log2fftlen;  % Transform length/point size
 
 % Increase this to support signals with larger amplitudes
 % When changing though, be sure to restart the whole simulation
 % Since this value is written to and hardcoded in a vhdl
 % script that already exists at runtime.
-icpx_width = 16;
+ip_width = 8;
 
-
-%% Signal settings
-Fs=10*10^9;  % Sample rate
-T = 1/Fs;  % Sample period
+% Sampling frequency
+% Fs = 1000;  % Hz
+windows = 4;
+L = fftlen*windows;
+repetitions = 2;
+Fs = 1/(Tm/L);  % L points from 0 to Tm
