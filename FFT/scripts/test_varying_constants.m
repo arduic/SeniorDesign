@@ -16,7 +16,7 @@ TM = 1;
 DF = 2;
 F0 = 3;
 TL = 4;
-var = TL;
+var = F0;
 
 if var == TM
     x_start = 2*R/c;
@@ -72,13 +72,24 @@ end
 
 figure;
 
+if var == DF
+    x_range = x_range / 10^6;
+elseif var == TM
+    x_range = x_range * 10^6;
+end
+
 subplot(2,2,1);
 plot(x_range, ranges);
 line = refline(0, R);
 line.Color = 'r';
 title(sprintf('Range vs %s', constant));
 legend('Actual', sprintf('Expected (%d)', R));
-xlim([x_start x_end]);
+ylabel('Range (m)');
+if var == DF
+    xlabel('Frequency (MHz)');
+elseif var == TM
+    xlabel('Period (us)');
+end
 
 subplot(2,2,2);
 plot(x_range, vels);
@@ -86,14 +97,29 @@ line = refline(0, vr);
 line.Color = 'r';
 title(sprintf('Velocity vs %s', constant));
 legend('Actual', sprintf('Expected (%f)', vr));
-xlim([x_start x_end]);
+ylabel('Velocity (m/s)');
+if var == DF
+    xlabel('Frequency (MHz)');
+elseif var == TM
+    xlabel('Period (us)');
+end
 
 subplot(2,2,3);
 plot(x_range, abs((ranges - R)/R*100));
 title('Range % error');
-xlim([x_start x_end]);
+ylabel('Range (m)');
+if var == DF
+    xlabel('Frequency (MHz)');
+elseif var == TM
+    xlabel('Period (us)');
+end
 
 subplot(2,2,4);
 plot(x_range, abs((vels - vr)/vr*100));
 title('Vel % error');
-xlim([x_start x_end]);
+ylabel('Velocity (m/s)');
+if var == DF
+    xlabel('Frequency (MHz)');
+elseif var == TM
+    xlabel('Period (us)');
+end

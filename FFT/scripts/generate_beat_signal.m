@@ -1,4 +1,4 @@
-function [signal, t]=generate_beat_signal(L, df, c, f0, Tm, R, vr)
+function [signal, t, fb_up, fb_down]=generate_beat_signal(L, df, c, f0, Tm, R, vr)
     fm = 1/Tm;
     fR = R*4*fm*df/c;
     fd = vr*2*f0/c;

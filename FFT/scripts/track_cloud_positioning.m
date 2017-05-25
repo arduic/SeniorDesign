@@ -76,10 +76,14 @@ ranges_max_err = abs(ranges_max - ranges(1:windowSize:end-1))./ranges(1:windowSi
 vel_avg_err = abs(vels_avg - vels(2:end))./vels(2:end)*100;
 
 figure;
-plot(t, ranges, t, ranges_actual, t(windowSize:end), ranges_sma(windowSize:end),...
-     t, ranges_hi, t, ranges_lo, t, ranges_avg);
+% plot(t, ranges, t, ranges_actual, t(windowSize:end), ranges_sma(windowSize:end),...
+%      t, ranges_hi, t, ranges_lo, t, ranges_avg);
+plot(t, ranges, t, ranges_actual);
 title(sprintf('Hurrican distance @ %.2f m/s', vr));
-legend('Expected', 'Measured', 'SMA', 'High', 'Low', 'Avg');
+% legend('Expected', 'Measured', 'SMA', 'High', 'Low', 'Avg');
+legend('Expected', 'Measured');
+xlabel('Time (s)');
+ylabel('Range (m)');
 
 figure;
 [pks, locs] = findpeaks(ranges_err, 'MinPeakDistance', 5/dt);
@@ -89,27 +93,37 @@ locs_t = t(locs);
 %      locs_t, pks, 'o',...
 %      t_max, ranges_max_err);
 % legend('Measured', 'SMA', 'High', 'Low', 'Avg', 'Peaks', 'Max Period');
-plot(t, ranges_err,...
-     t, ranges_hi_err, t, ranges_lo_err, t, ranges_avg_err,...
-     locs_t, pks, 'o');
-legend('Measured', 'High', 'Low', 'Avg', 'Peaks');
+% plot(t, ranges_err,...
+%      t, ranges_hi_err, t, ranges_lo_err, t, ranges_avg_err,...
+%      locs_t, pks, 'o');
+% legend('Measured', 'High', 'Low', 'Avg', 'Peaks');
+plot(ranges, ranges_err);
+hold on;
+plot(ranges, ranges_avg_err', 'LineWidth', 2);
+legend('Measured', 'Envelope Average');
 title('Hurrican distance % Error');
+% xlabel('Time (s)');
+xlabel('Range (m)');
+ylabel('% Error');
 
 
 figure;
 % plot(t, vels, t, vels_actual, t(windowSize:end), vels_sma(windowSize:end));
 % legend('Expected', 'Measured', 'SMA');
-plot(t, vels, t, vels_actual, t(2:end), vels_avg);
-legend('Expected', 'Measured', 'Avg');
+plot(t, vels, t, vels_actual);
+legend('Expected', 'Measured');
 title('Hurrican velocity');
+xlabel('Travel Time (s)');
+ylabel('Velocity (m/s)');
 
 figure;
-plot(t, vels_err, t(2:end), vel_avg_err);
-legend('Measured', 'Avg');
+plot(t, vels_err);
 title('Hurrican velocity % Error');
+xlabel('Travel Time (s)');
+ylabel('% Error');
+
 figure;
 
-plot(t, vels_err, t(2:end), vel_avg_err);
+plot(t(2:end), vel_avg_err);
 legend('Measured', 'Avg');
 title('Hurrican velocity % Error Zoomed in');
-ylim([0 100]);
